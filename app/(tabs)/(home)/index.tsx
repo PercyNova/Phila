@@ -1,161 +1,341 @@
-import React from "react";
-import { Stack, Link } from "expo-router";
-import { FlatList, Pressable, StyleSheet, View, Text, Alert, Platform } from "react-native";
-import { IconSymbol } from "@/components/IconSymbol";
-import { GlassView } from "expo-glass-effect";
-import { useTheme } from "@react-navigation/native";
-
-const ICON_COLOR = "#007AFF";
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth } from '@/src/context/AuthContext';
+import { AppNavigator } from '@/src/navigation/AppNavigator';
+import { Button } from '@/src/components/Button';
+import { InputField } from '@/src/components/InputField';
+import { colors, commonStyles } from '@/styles/commonStyles';
+import { decryptData } from '@/src/utils/encryption';
+import { appointmentService } from '@/src/services/appointmentService';
+import { IconSymbol } from '@/components/IconSymbol';
 
 export default function HomeScreen() {
-  const theme = useTheme();
-  const modalDemos = [
-    {
-      title: "Standard Modal",
-      description: "Full screen modal presentation",
-      route: "/modal",
-      color: "#007AFF",
-    },
-    {
-      title: "Form Sheet",
-      description: "Bottom sheet with detents and grabber",
-      route: "/formsheet",
-      color: "#34C759",
-    },
-    {
-      title: "Transparent Modal",
-      description: "Overlay without obscuring background",
-      route: "/transparent-modal",
-      color: "#FF9500",
+  const { user, switchToRandomUser, updateUser } = useAuth();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({ weight: '', allergies: '' });
+  const [upcomingAppointments, setUpcomingAppointments] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (user) {
+      setEditData({
+        weight: user.weight,
+        allergies: user.allergies,
+      });
+      loadUpcomingAppointments();
     }
-  ];
+  }, [user]);
 
-  const renderModalDemo = ({ item }: { item: (typeof modalDemos)[0] }) => (
-    <GlassView style={[
-      styles.demoCard,
-      Platform.OS !== 'ios' && { backgroundColor: theme.dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }
-    ]} glassEffectStyle="regular">
-      <View style={[styles.demoIcon, { backgroundColor: item.color }]}>
-        <IconSymbol name="square.grid.3x3" color="white" size={24} />
-      </View>
-      <View style={styles.demoContent}>
-        <Text style={[styles.demoTitle, { color: theme.colors.text }]}>{item.title}</Text>
-        <Text style={[styles.demoDescription, { color: theme.dark ? '#98989D' : '#666' }]}>{item.description}</Text>
-      </View>
-      <Link href={item.route as any} asChild>
-        <Pressable>
-          <GlassView style={[
-            styles.tryButton,
-            Platform.OS !== 'ios' && { backgroundColor: theme.dark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)' }
-          ]} glassEffectStyle="clear">
-            <Text style={[styles.tryButtonText, { color: theme.colors.primary }]}>Try It</Text>
-          </GlassView>
-        </Pressable>
-      </Link>
-    </GlassView>
-  );
+  const loadUpcomingAppointments = async () => {
+    try {
+      appointmentService.generateMockAppointments();
+      const appointments = await appointmentService.getUpcomingAppointments();
+      setUpcomingAppointments(appointments);
+    } catch (error) {
+      console.error('Error loading appointments:', error);
+    }
+  };
 
-  const renderHeaderRight = () => (
-    <Pressable
-      onPress={() => Alert.alert("Not Implemented", "This feature is not implemented yet")}
-      style={styles.headerButtonContainer}
-    >
-      <IconSymbol name="plus" color={theme.colors.primary} />
-    </Pressable>
-  );
+  const handleSaveChanges = () => {
+    if (user) {
+      const updatedUser = {
+        ...user,
+        weight: editData.weight,
+        allergies: editData.allergies,
+      };
+      updateUser(updatedUser);
+      setIsEditing(false);
+      Alert.alert('Success', 'Your information has been updated');
+    }
+  };
 
-  const renderHeaderLeft = () => (
-    <Pressable
-      onPress={() => Alert.alert("Not Implemented", "This feature is not implemented yet")}
-      style={styles.headerButtonContainer}
-    >
-      <IconSymbol
-        name="gear"
-        color={theme.colors.primary}
-      />
-    </Pressable>
-  );
+  const handleSwitchUser = () => {
+    Alert.alert(
+      'Switch User',
+      'This will switch to a different mock user for demo purposes.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Switch',
+          onPress: () => {
+            switchToRandomUser();
+            Alert.alert('Success', 'Switched to a new demo user');
+          },
+        },
+      ]
+    );
+  };
+
+  const getDecryptedData = (encryptedData: string): string => {
+    try {
+      return decryptData(encryptedData);
+    } catch {
+      return encryptedData;
+    }
+  };
 
   return (
-    <>
-      {Platform.OS === 'ios' && (
-        <Stack.Screen
-          options={{
-            title: "Building the app...",
-            headerRight: renderHeaderRight,
-            headerLeft: renderHeaderLeft,
-          }}
-        />
-      )}
-      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-        <FlatList
-          data={modalDemos}
-          renderItem={renderModalDemo}
-          keyExtractor={(item) => item.route}
-          contentContainerStyle={[
-            styles.listContainer,
-            Platform.OS !== 'ios' && styles.listContainerWithTabBar
-          ]}
-          contentInsetAdjustmentBehavior="automatic"
-          showsVerticalScrollIndicator={false}
-        />
-      </View>
-    </>
+    <AppNavigator>
+      <SafeAreaView style={commonStyles.wrapper}>
+        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+          {/* Header */}
+          <View style={styles.header}>
+            <View>
+              <Text style={commonStyles.title}>
+                Welcome back, {user?.firstName}!
+              </Text>
+              <Text style={commonStyles.textSecondary}>
+                {new Date().toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </Text>
+            </View>
+          </View>
+
+          {/* Quick Health Info */}
+          <View style={[commonStyles.card, styles.healthCard]}>
+            <View style={styles.cardHeader}>
+              <Text style={commonStyles.subtitle}>Quick Health Info</Text>
+              <TouchableOpacity
+                onPress={() => setIsEditing(!isEditing)}
+                style={styles.editButton}
+              >
+                <IconSymbol
+                  name={isEditing ? 'checkmark' : 'pencil'}
+                  size={20}
+                  color={colors.primary}
+                />
+              </TouchableOpacity>
+            </View>
+
+            {isEditing ? (
+              <View>
+                <InputField
+                  label="Weight (kg)"
+                  value={editData.weight}
+                  onChangeText={(text) => setEditData({ ...editData, weight: text })}
+                  keyboardType="numeric"
+                  placeholder="Enter your weight"
+                />
+                <InputField
+                  label="Allergies"
+                  value={editData.allergies}
+                  onChangeText={(text) => setEditData({ ...editData, allergies: text })}
+                  placeholder="Enter any allergies"
+                  multiline
+                />
+                <View style={styles.editActions}>
+                  <Button
+                    title="Cancel"
+                    onPress={() => {
+                      setIsEditing(false);
+                      setEditData({
+                        weight: user?.weight || '',
+                        allergies: user?.allergies || '',
+                      });
+                    }}
+                    variant="outline"
+                    style={styles.actionButton}
+                  />
+                  <Button
+                    title="Save"
+                    onPress={handleSaveChanges}
+                    style={styles.actionButton}
+                  />
+                </View>
+              </View>
+            ) : (
+              <View style={styles.healthInfo}>
+                <View style={styles.healthItem}>
+                  <Text style={styles.healthLabel}>Weight:</Text>
+                  <Text style={styles.healthValue}>{user?.weight} kg</Text>
+                </View>
+                <View style={styles.healthItem}>
+                  <Text style={styles.healthLabel}>Blood Type:</Text>
+                  <Text style={styles.healthValue}>{user?.bloodType}</Text>
+                </View>
+                <View style={styles.healthItem}>
+                  <Text style={styles.healthLabel}>Allergies:</Text>
+                  <Text style={styles.healthValue}>{user?.allergies}</Text>
+                </View>
+                <View style={styles.healthItem}>
+                  <Text style={styles.healthLabel}>Last Visit:</Text>
+                  <Text style={styles.healthValue}>{user?.lastVisit}</Text>
+                </View>
+              </View>
+            )}
+          </View>
+
+          {/* Upcoming Appointments */}
+          <View style={commonStyles.card}>
+            <Text style={commonStyles.subtitle}>Upcoming Appointments</Text>
+            {upcomingAppointments.length > 0 ? (
+              upcomingAppointments.map((appointment) => (
+                <View key={appointment.id} style={styles.appointmentItem}>
+                  <View style={styles.appointmentInfo}>
+                    <Text style={styles.appointmentType}>
+                      {appointment.type === 'routine' ? '🩺' : '🔍'} {appointment.type.replace('-', ' ')}
+                    </Text>
+                    <Text style={styles.appointmentDate}>
+                      {appointment.date} at {appointment.time}
+                    </Text>
+                    <Text style={styles.appointmentCode}>
+                      Ticket: {appointment.ticketCode}
+                    </Text>
+                  </View>
+                </View>
+              ))
+            ) : (
+              <Text style={commonStyles.textSecondary}>No upcoming appointments</Text>
+            )}
+          </View>
+
+          {/* Health Recommendations */}
+          <View style={commonStyles.card}>
+            <Text style={commonStyles.subtitle}>Health Recommendations</Text>
+            <View style={styles.recommendation}>
+              <Text style={styles.recommendationIcon}>💧</Text>
+              <Text style={styles.recommendationText}>
+                Stay hydrated - aim for 8 glasses of water daily
+              </Text>
+            </View>
+            <View style={styles.recommendation}>
+              <Text style={styles.recommendationIcon}>🚶‍♂️</Text>
+              <Text style={styles.recommendationText}>
+                Take a 30-minute walk today for better cardiovascular health
+              </Text>
+            </View>
+            <View style={styles.recommendation}>
+              <Text style={styles.recommendationIcon}>😴</Text>
+              <Text style={styles.recommendationText}>
+                Maintain 7-9 hours of sleep for optimal recovery
+              </Text>
+            </View>
+          </View>
+
+          {/* Demo Actions */}
+          <View style={commonStyles.card}>
+            <Text style={commonStyles.subtitle}>Demo Actions</Text>
+            <Button
+              title="🔄 Switch to Random User"
+              onPress={handleSwitchUser}
+              variant="outline"
+              style={styles.demoButton}
+            />
+          </View>
+        </ScrollView>
+
+        {/* Floating Action Button */}
+        <TouchableOpacity
+          style={commonStyles.floatingButton}
+          onPress={handleSwitchUser}
+        >
+          <IconSymbol name="person.2.fill" size={24} color={colors.card} />
+        </TouchableOpacity>
+      </SafeAreaView>
+    </AppNavigator>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // backgroundColor handled dynamically
-  },
-  listContainer: {
-    paddingVertical: 16,
     paddingHorizontal: 16,
   },
-  listContainerWithTabBar: {
-    paddingBottom: 100, // Extra padding for floating tab bar
-  },
-  demoCard: {
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+  header: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingVertical: 20,
+  },
+  healthCard: {
+    marginBottom: 16,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  editButton: {
+    padding: 8,
+  },
+  healthInfo: {
+    gap: 12,
+  },
+  healthItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
-  demoIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
+  healthLabel: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    fontWeight: '500',
   },
-  demoContent: {
+  healthValue: {
+    fontSize: 16,
+    color: colors.text,
+    fontWeight: '600',
+  },
+  editActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+  },
+  actionButton: {
     flex: 1,
   },
-  demoTitle: {
-    fontSize: 18,
+  appointmentItem: {
+    backgroundColor: colors.background,
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 8,
+  },
+  appointmentInfo: {
+    gap: 4,
+  },
+  appointmentType: {
+    fontSize: 16,
     fontWeight: '600',
-    marginBottom: 4,
-    // color handled dynamically
+    color: colors.text,
+    textTransform: 'capitalize',
   },
-  demoDescription: {
+  appointmentDate: {
     fontSize: 14,
-    lineHeight: 18,
-    // color handled dynamically
+    color: colors.textSecondary,
   },
-  headerButtonContainer: {
-    padding: 6,
+  appointmentCode: {
+    fontSize: 12,
+    color: colors.primary,
+    fontWeight: '500',
   },
-  tryButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 6,
+  recommendation: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
   },
-  tryButtonText: {
+  recommendationIcon: {
+    fontSize: 20,
+    marginRight: 12,
+  },
+  recommendationText: {
+    flex: 1,
     fontSize: 14,
-    fontWeight: '600',
-    // color handled dynamically
+    color: colors.text,
+    lineHeight: 20,
+  },
+  demoButton: {
+    marginTop: 8,
   },
 });

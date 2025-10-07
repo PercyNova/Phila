@@ -19,6 +19,18 @@ export default function TabLayout() {
       icon: 'person.fill',
       label: 'Profile',
     },
+    {
+      name: 'appointments',
+      route: '/(tabs)/appointments',
+      icon: 'calendar',
+      label: 'Appointments',
+    },
+    {
+      name: 'emergency',
+      route: '/(tabs)/emergency',
+      icon: 'exclamationmark.triangle.fill',
+      label: 'Emergency',
+    },
   ];
 
   // Use NativeTabs for iOS, custom FloatingTabBar for Android and Web
@@ -32,6 +44,14 @@ export default function TabLayout() {
         <NativeTabs.Trigger name="profile">
           <Icon sf="person.fill" drawable="ic_profile" />
           <Label>Profile</Label>
+        </NativeTabs.Trigger>
+        <NativeTabs.Trigger name="appointments">
+          <Icon sf="calendar" drawable="ic_calendar" />
+          <Label>Appointments</Label>
+        </NativeTabs.Trigger>
+        <NativeTabs.Trigger name="emergency">
+          <Icon sf="exclamationmark.triangle.fill" drawable="ic_emergency" />
+          <Label>Emergency</Label>
         </NativeTabs.Trigger>
       </NativeTabs>
     );
@@ -48,6 +68,8 @@ export default function TabLayout() {
       >
         <Stack.Screen name="(home)" />
         <Stack.Screen name="profile" />
+        <Stack.Screen name="appointments" />
+        <Stack.Screen name="emergency" />
       </Stack>
       <FloatingTabBar tabs={tabs} />
     </>
