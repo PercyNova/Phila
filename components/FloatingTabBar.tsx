@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   View,
@@ -38,7 +39,7 @@ interface FloatingTabBarProps {
 
 export default function FloatingTabBar({
   tabs,
-  containerWidth = 240,
+  containerWidth = screenWidth * 0.9, // 90% of screen width
   borderRadius = 25,
   bottomMargin
 }: FloatingTabBarProps) {
@@ -97,8 +98,6 @@ export default function FloatingTabBar({
     router.push(route);
   };
 
-  // Remove unnecessary tabBarStyle animation to prevent flickering
-
   const indicatorStyle = useAnimatedStyle(() => {
     const tabWidth = (containerWidth - 16) / tabs.length; // Account for container padding (8px on each side)
     return {
@@ -114,30 +113,42 @@ export default function FloatingTabBar({
     };
   });
 
-  // Dynamic styles based on theme
+  // Enhanced dynamic styles with better glossy effect
   const dynamicStyles = {
     blurContainer: {
       ...styles.blurContainer,
       ...Platform.select({
         ios: {
           backgroundColor: theme.dark
-            ? 'rgba(28, 28, 30, 0.8)'
-            : 'rgba(255, 255, 255, 0.8)',
+            ? 'rgba(28, 28, 30, 0.85)'
+            : 'rgba(255, 255, 255, 0.85)',
+          borderWidth: 1,
+          borderColor: theme.dark
+            ? 'rgba(255, 255, 255, 0.1)'
+            : 'rgba(0, 0, 0, 0.05)',
         },
         android: {
           backgroundColor: theme.dark
             ? 'rgba(28, 28, 30, 0.95)'
             : 'rgba(255, 255, 255, 0.95)',
-          elevation: 8,
+          elevation: 12,
+          borderWidth: 1,
+          borderColor: theme.dark
+            ? 'rgba(255, 255, 255, 0.1)'
+            : 'rgba(0, 0, 0, 0.05)',
         },
         web: {
           backgroundColor: theme.dark
-            ? 'rgba(28, 28, 30, 0.95)'
-            : 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(10px)',
+            ? 'rgba(28, 28, 30, 0.9)'
+            : 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
           boxShadow: theme.dark
-            ? '0 8px 32px rgba(0, 0, 0, 0.4)'
-            : '0 8px 32px rgba(0, 0, 0, 0.1)',
+            ? '0 8px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+            : '0 8px 32px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+          border: theme.dark
+            ? '1px solid rgba(255, 255, 255, 0.1)'
+            : '1px solid rgba(0, 0, 0, 0.05)',
         },
       }),
     },
@@ -150,8 +161,8 @@ export default function FloatingTabBar({
     indicator: {
       ...styles.indicator,
       backgroundColor: theme.dark
-        ? 'rgba(255, 255, 255, 0.08)' // Subtle white overlay in dark mode
-        : 'rgba(0, 0, 0, 0.04)', // Subtle black overlay in light mode
+        ? 'rgba(255, 255, 255, 0.12)' // More visible white overlay in dark mode
+        : 'rgba(0, 0, 0, 0.06)', // More visible black overlay in light mode
       width: `${(100 / tabs.length) - 3}%`, // Dynamic width based on number of tabs
     },
   };
@@ -166,7 +177,7 @@ export default function FloatingTabBar({
         }
       ]}>
         <BlurView
-          intensity={Platform.OS === 'web' ? 0 : 80}
+          intensity={Platform.OS === 'web' ? 0 : 100} // Increased intensity for better glossy effect
           style={[dynamicStyles.blurContainer, { borderRadius }]}
         >
           <View style={dynamicStyles.background} />
@@ -194,6 +205,8 @@ export default function FloatingTabBar({
                         { color: colors.text },
                         isActive && { color: colors.primary, fontWeight: '600' },
                       ]}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
                     >
                       {tab.label}
                     </Text>
@@ -224,7 +237,14 @@ const styles = StyleSheet.create({
   },
   blurContainer: {
     overflow: 'hidden',
-    // borderRadius and other styling applied dynamically
+    // Enhanced shadow and border effects for glossy appearance
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
   },
   background: {
     ...StyleSheet.absoluteFillObject,
@@ -250,16 +270,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 8,
+    paddingHorizontal: 4, // Add horizontal padding to prevent text squashing
   },
   tabContent: {
     alignItems: 'center',
     justifyContent: 'center',
     gap: 2,
+    minWidth: 0, // Allow text to shrink
   },
   tabLabel: {
     fontSize: 11,
     fontWeight: '500',
     marginTop: 2,
+    textAlign: 'center',
     // Dynamic styling applied in component
   },
 });

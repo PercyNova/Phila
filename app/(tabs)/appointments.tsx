@@ -22,18 +22,16 @@ import { IconSymbol } from '@/components/IconSymbol';
 export default function AppointmentsScreen() {
   const { user } = useAuth();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'book' | 'upcoming' | 'history'>('upcoming');
+  const [activeTab, setActiveTab] = useState<'book' | 'upcoming' | 'history'>('book');
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  
+  const [pastAppointments, setPastAppointments] = useState<Appointment[]>([]);
+
   // Booking form state
   const [appointmentType, setAppointmentType] = useState<'routine' | 'symptom-based'>('routine');
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
   const [symptoms, setSymptoms] = useState<SymptomInput[]>([]);
-  const [currentSymptom, setCurrentSymptom] = useState('');
-  const [currentSeverity, setCurrentSeverity] = useState('5');
   const [triageResult, setTriageResult] = useState<TriageResult | null>(null);
 
   useEffect(() => {
@@ -44,9 +42,9 @@ export default function AppointmentsScreen() {
     try {
       appointmentService.generateMockAppointments();
       const upcoming = await appointmentService.getUpcomingAppointments();
-      const all = await appointmentService.getAllAppointments();
+      const past = await appointmentService.getPastAppointments();
       setUpcomingAppointments(upcoming);
-      setAppointments(all);
+      setPastAppointments(past);
     } catch (error) {
       console.error('Error loading appointments:', error);
     }
@@ -58,65 +56,38 @@ export default function AppointmentsScreen() {
       return;
     }
 
-    if (appointmentType === 'symptom-based' && symptoms.length === 0) {
-      Alert.alert('Error', 'Please add at least one symptom');
-      return;
-    }
-
-    setIsLoading(true);
     try {
-      const result = await appointmentService.bookAppointment(
-        appointmentType,
-        selectedDate,
-        selectedTime,
-        symptoms.map(s => s.symptom)
+      const appointment = await appointmentService.bookAppointment({
+        type: appointmentType,
+        date: selectedDate,
+        time: selectedTime,
+        symptoms: appointmentType === 'symptom-based' ? symptoms : undefined,
+        triageResult: triageResult || undefined,
+      });
+
+      Alert.alert(
+        'Appointment Booked',
+        `Your appointment has been scheduled.\nTicket: ${appointment.ticketCode}`,
+        [{ text: 'OK', onPress: resetBookingForm }]
       );
 
-      if (result.success) {
-        Alert.alert(
-          'Appointment Booked',
-          `Your appointment has been scheduled.\nTicket Code: ${result.appointment?.ticketCode}`,
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                setActiveTab('upcoming');
-                loadAppointments();
-                resetBookingForm();
-              },
-            },
-          ]
-        );
-      }
+      loadAppointments();
     } catch (error) {
-      console.error('Booking error:', error);
-      Alert.alert('Error', 'Failed to book appointment. Please try again.');
-    } finally {
-      setIsLoading(false);
+      console.error('Error booking appointment:', error);
+      Alert.alert('Error', 'Failed to book appointment');
     }
   };
 
   const resetBookingForm = () => {
+    setAppointmentType('routine');
     setSelectedDate('');
     setSelectedTime('');
     setSymptoms([]);
-    setCurrentSymptom('');
-    setCurrentSeverity('5');
     setTriageResult(null);
   };
 
   const addSymptom = () => {
-    if (!currentSymptom.trim()) return;
-
-    const newSymptom: SymptomInput = {
-      symptom: currentSymptom.trim(),
-      severity: parseInt(currentSeverity),
-      duration: '1 day', // Simplified for demo
-    };
-
-    setSymptoms([...symptoms, newSymptom]);
-    setCurrentSymptom('');
-    setCurrentSeverity('5');
+    setSymptoms([...symptoms, { symptom: '', severity: 'mild', duration: '' }]);
   };
 
   const removeSymptom = (index: number) => {
@@ -125,16 +96,17 @@ export default function AppointmentsScreen() {
 
   const runTriage = async () => {
     if (symptoms.length === 0) {
-      Alert.alert('Error', 'Please add symptoms first');
+      Alert.alert('Error', 'Please add at least one symptom');
       return;
     }
 
     try {
       const result = await triageService.evaluateSymptoms(symptoms);
       setTriageResult(result);
+      Alert.alert('Triage Complete', result.recommendation);
     } catch (error) {
-      console.error('Triage error:', error);
-      Alert.alert('Error', 'Failed to evaluate symptoms');
+      console.error('Error running triage:', error);
+      Alert.alert('Error', 'Failed to run triage evaluation');
     }
   };
 
@@ -150,9 +122,10 @@ export default function AppointmentsScreen() {
           onPress: async () => {
             try {
               await appointmentService.cancelAppointment(appointmentId);
+              Alert.alert('Success', 'Appointment cancelled');
               loadAppointments();
-              Alert.alert('Success', 'Appointment cancelled successfully');
             } catch (error) {
+              console.error('Error cancelling appointment:', error);
               Alert.alert('Error', 'Failed to cancel appointment');
             }
           },
@@ -173,13 +146,10 @@ export default function AppointmentsScreen() {
   );
 
   const renderBookingTab = () => (
-    <ScrollView style={styles.tabContent}>
+    <View>
       <View style={commonStyles.card}>
-        <Text style={commonStyles.subtitle}>Book New Appointment</Text>
-        
-        {/* Appointment Type */}
-        <Text style={styles.sectionLabel}>Appointment Type</Text>
-        <View style={styles.typeButtons}>
+        <Text style={commonStyles.subtitle}>Appointment Type</Text>
+        <View style={styles.typeSelector}>
           <TouchableOpacity
             style={[
               styles.typeButton,
@@ -187,10 +157,12 @@ export default function AppointmentsScreen() {
             ]}
             onPress={() => setAppointmentType('routine')}
           >
-            <Text style={[
-              styles.typeButtonText,
-              appointmentType === 'routine' && styles.activeTypeButtonText,
-            ]}>
+            <Text
+              style={[
+                styles.typeButtonText,
+                appointmentType === 'routine' && styles.activeTypeButtonText,
+              ]}
+            >
               🩺 Routine Checkup
             </Text>
           </TouchableOpacity>
@@ -201,116 +173,92 @@ export default function AppointmentsScreen() {
             ]}
             onPress={() => setAppointmentType('symptom-based')}
           >
-            <Text style={[
-              styles.typeButtonText,
-              appointmentType === 'symptom-based' && styles.activeTypeButtonText,
-            ]}>
-              🔍 Symptom-Based
+            <Text
+              style={[
+                styles.typeButtonText,
+                appointmentType === 'symptom-based' && styles.activeTypeButtonText,
+              ]}
+            >
+              🔍 Symptom Based
             </Text>
           </TouchableOpacity>
         </View>
+      </View>
 
-        {/* Date and Time */}
+      <View style={commonStyles.card}>
+        <Text style={commonStyles.subtitle}>Schedule</Text>
         <InputField
-          label="Preferred Date"
+          label="Date"
           value={selectedDate}
           onChangeText={setSelectedDate}
           placeholder="YYYY-MM-DD"
         />
         <InputField
-          label="Preferred Time"
+          label="Time"
           value={selectedTime}
           onChangeText={setSelectedTime}
           placeholder="HH:MM"
         />
-
-        {/* Symptoms (for symptom-based appointments) */}
-        {appointmentType === 'symptom-based' && (
-          <>
-            <Text style={styles.sectionLabel}>Symptoms</Text>
-            <View style={styles.symptomInput}>
-              <InputField
-                label="Describe your symptom"
-                value={currentSymptom}
-                onChangeText={setCurrentSymptom}
-                placeholder="e.g., headache, fever, cough"
-              />
-              <InputField
-                label="Severity (1-10)"
-                value={currentSeverity}
-                onChangeText={setCurrentSeverity}
-                keyboardType="numeric"
-                placeholder="5"
-              />
-              <Button
-                title="Add Symptom"
-                onPress={addSymptom}
-                variant="outline"
-              />
-            </View>
-
-            {symptoms.length > 0 && (
-              <View style={styles.symptomsList}>
-                <Text style={styles.symptomsTitle}>Added Symptoms:</Text>
-                {symptoms.map((symptom, index) => (
-                  <View key={index} style={styles.symptomItem}>
-                    <View style={styles.symptomInfo}>
-                      <Text style={styles.symptomText}>{symptom.symptom}</Text>
-                      <Text style={styles.symptomSeverity}>
-                        Severity: {symptom.severity}/10
-                      </Text>
-                    </View>
-                    <TouchableOpacity
-                      onPress={() => removeSymptom(index)}
-                      style={styles.removeButton}
-                    >
-                      <IconSymbol name="xmark" size={16} color={colors.error} />
-                    </TouchableOpacity>
-                  </View>
-                ))}
-                
-                <View style={styles.triageActions}>
-                  <Button
-                    title="🔍 Run Triage Assessment"
-                    onPress={runTriage}
-                    variant="outline"
-                    style={styles.triageButton}
-                  />
-                  <Button
-                    title="📋 Full Triage Page"
-                    onPress={() => router.push('/triage')}
-                    variant="outline"
-                    style={styles.triageButton}
-                  />
-                </View>
-              </View>
-            )}
-
-            {triageResult && (
-              <View style={[styles.triageResult, { borderColor: getSeverityColor(triageResult.severity) }]}>
-                <Text style={styles.triageTitle}>Triage Assessment</Text>
-                <Text style={[styles.triageSeverity, { color: getSeverityColor(triageResult.severity) }]}>
-                  Severity: {triageResult.severity.toUpperCase()}
-                </Text>
-                <Text style={styles.triageUrgency}>{triageResult.urgency}</Text>
-                <Text style={styles.triageRecommendation}>{triageResult.recommendation}</Text>
-              </View>
-            )}
-          </>
-        )}
-
-        <Button
-          title="Book Appointment"
-          onPress={handleBookAppointment}
-          loading={isLoading}
-          style={styles.bookButton}
-        />
       </View>
-    </ScrollView>
+
+      {appointmentType === 'symptom-based' && (
+        <View style={commonStyles.card}>
+          <View style={styles.cardHeader}>
+            <Text style={commonStyles.subtitle}>Symptoms</Text>
+            <Button title="Add Symptom" onPress={addSymptom} variant="outline" />
+          </View>
+
+          {symptoms.map((symptom, index) => (
+            <View key={index} style={styles.symptomItem}>
+              <InputField
+                label="Symptom"
+                value={symptom.symptom}
+                onChangeText={(text) => {
+                  const newSymptoms = [...symptoms];
+                  newSymptoms[index].symptom = text;
+                  setSymptoms(newSymptoms);
+                }}
+                placeholder="Describe your symptom"
+              />
+              <InputField
+                label="Duration"
+                value={symptom.duration}
+                onChangeText={(text) => {
+                  const newSymptoms = [...symptoms];
+                  newSymptoms[index].duration = text;
+                  setSymptoms(newSymptoms);
+                }}
+                placeholder="How long have you had this?"
+              />
+              <TouchableOpacity
+                style={styles.removeButton}
+                onPress={() => removeSymptom(index)}
+              >
+                <Text style={styles.removeButtonText}>Remove</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+
+          {symptoms.length > 0 && (
+            <Button title="Run Triage" onPress={runTriage} variant="outline" />
+          )}
+
+          {triageResult && (
+            <View style={[styles.triageResult, { backgroundColor: getSeverityColor(triageResult.severity) }]}>
+              <Text style={styles.triageTitle}>Triage Result</Text>
+              <Text style={styles.triageSeverity}>Severity: {triageResult.severity}</Text>
+              <Text style={styles.triageRecommendation}>{triageResult.recommendation}</Text>
+            </View>
+          )}
+        </View>
+      )}
+
+      <Button title="Book Appointment" onPress={handleBookAppointment} />
+    </View>
   );
 
   const renderUpcomingTab = () => (
-    <ScrollView style={styles.tabContent}>
+    <View>
       {upcomingAppointments.length > 0 ? (
         upcomingAppointments.map((appointment) => (
           <View key={appointment.id} style={commonStyles.card}>
@@ -318,27 +266,24 @@ export default function AppointmentsScreen() {
               <Text style={styles.appointmentType}>
                 {appointment.type === 'routine' ? '🩺' : '🔍'} {appointment.type.replace('-', ' ')}
               </Text>
-              <Text style={[styles.appointmentStatus, { color: colors.success }]}>
-                {appointment.status}
-              </Text>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => cancelAppointment(appointment.id)}
+              >
+                <IconSymbol name="xmark" size={16} color={colors.error} />
+              </TouchableOpacity>
             </View>
             <Text style={styles.appointmentDate}>
-              📅 {appointment.date} at {appointment.time}
+              {appointment.date} at {appointment.time}
             </Text>
-            <Text style={styles.appointmentTicket}>
-              🎫 Ticket: {appointment.ticketCode}
-            </Text>
-            {appointment.symptoms && (
-              <Text style={styles.appointmentSymptoms}>
-                Symptoms: {appointment.symptoms.join(', ')}
-              </Text>
+            <Text style={styles.appointmentCode}>Ticket: {appointment.ticketCode}</Text>
+            {appointment.triageResult && (
+              <View style={styles.triageInfo}>
+                <Text style={styles.triageInfoText}>
+                  Severity: {appointment.triageResult.severity}
+                </Text>
+              </View>
             )}
-            <Button
-              title="Cancel Appointment"
-              onPress={() => cancelAppointment(appointment.id)}
-              variant="outline"
-              style={styles.cancelButton}
-            />
           </View>
         ))
       ) : (
@@ -346,53 +291,44 @@ export default function AppointmentsScreen() {
           <Text style={commonStyles.textSecondary}>No upcoming appointments</Text>
         </View>
       )}
-    </ScrollView>
+    </View>
   );
 
   const renderHistoryTab = () => (
-    <ScrollView style={styles.tabContent}>
-      {appointments.length > 0 ? (
-        appointments.map((appointment) => (
+    <View>
+      {pastAppointments.length > 0 ? (
+        pastAppointments.map((appointment) => (
           <View key={appointment.id} style={commonStyles.card}>
-            <View style={styles.appointmentHeader}>
-              <Text style={styles.appointmentType}>
-                {appointment.type === 'routine' ? '🩺' : '🔍'} {appointment.type.replace('-', ' ')}
-              </Text>
-              <Text style={[
-                styles.appointmentStatus,
-                { color: appointment.status === 'completed' ? colors.success : colors.error }
-              ]}>
-                {appointment.status}
-              </Text>
-            </View>
+            <Text style={styles.appointmentType}>
+              {appointment.type === 'routine' ? '🩺' : '🔍'} {appointment.type.replace('-', ' ')}
+            </Text>
             <Text style={styles.appointmentDate}>
-              📅 {appointment.date} at {appointment.time}
+              {appointment.date} at {appointment.time}
             </Text>
-            <Text style={styles.appointmentTicket}>
-              🎫 Ticket: {appointment.ticketCode}
+            <Text style={styles.appointmentCode}>Ticket: {appointment.ticketCode}</Text>
+            <Text style={[styles.appointmentStatus, { color: colors.success }]}>
+              Completed
             </Text>
-            {appointment.symptoms && (
-              <Text style={styles.appointmentSymptoms}>
-                Symptoms: {appointment.symptoms.join(', ')}
-              </Text>
-            )}
           </View>
         ))
       ) : (
         <View style={commonStyles.card}>
-          <Text style={commonStyles.textSecondary}>No appointment history</Text>
+          <Text style={commonStyles.textSecondary}>No past appointments</Text>
         </View>
       )}
-    </ScrollView>
+    </View>
   );
 
-  const getSeverityColor = (severity: string): string => {
-    switch (severity) {
-      case 'critical': return colors.error;
-      case 'high': return colors.warning;
-      case 'medium': return colors.secondary;
-      case 'low': return colors.success;
-      default: return colors.textSecondary;
+  const getSeverityColor = (severity: string) => {
+    switch (severity.toLowerCase()) {
+      case 'high':
+        return colors.error + '20';
+      case 'medium':
+        return colors.warning + '20';
+      case 'low':
+        return colors.success + '20';
+      default:
+        return colors.background;
     }
   };
 
@@ -400,25 +336,28 @@ export default function AppointmentsScreen() {
     <AppNavigator>
       <SafeAreaView style={commonStyles.wrapper}>
         <View style={styles.container}>
-          {/* Header */}
           <View style={styles.header}>
             <Text style={commonStyles.title}>Appointments</Text>
             <Text style={commonStyles.textSecondary}>
-              Manage your healthcare appointments
+              Book and manage your appointments
             </Text>
           </View>
 
-          {/* Tabs */}
-          <View style={styles.tabBar}>
+          <View style={styles.tabContainer}>
+            {renderTabButton('book', 'Book')}
             {renderTabButton('upcoming', 'Upcoming')}
-            {renderTabButton('book', 'Book New')}
             {renderTabButton('history', 'History')}
           </View>
 
-          {/* Tab Content */}
-          {activeTab === 'book' && renderBookingTab()}
-          {activeTab === 'upcoming' && renderUpcomingTab()}
-          {activeTab === 'history' && renderHistoryTab()}
+          <ScrollView 
+            style={styles.content}
+            contentContainerStyle={commonStyles.scrollViewWithTabBar}
+            showsVerticalScrollIndicator={false}
+          >
+            {activeTab === 'book' && renderBookingTab()}
+            {activeTab === 'upcoming' && renderUpcomingTab()}
+            {activeTab === 'history' && renderHistoryTab()}
+          </ScrollView>
         </View>
       </SafeAreaView>
     </AppNavigator>
@@ -433,18 +372,18 @@ const styles = StyleSheet.create({
   header: {
     paddingVertical: 20,
   },
-  tabBar: {
+  tabContainer: {
     flexDirection: 'row',
     backgroundColor: colors.card,
-    borderRadius: 12,
+    borderRadius: 8,
     padding: 4,
     marginBottom: 16,
   },
   tabButton: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: 8,
     paddingHorizontal: 16,
-    borderRadius: 8,
+    borderRadius: 6,
     alignItems: 'center',
   },
   activeTabButton: {
@@ -452,31 +391,28 @@ const styles = StyleSheet.create({
   },
   tabButtonText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: colors.textSecondary,
   },
   activeTabButtonText: {
     color: colors.card,
   },
-  tabContent: {
+  content: {
     flex: 1,
   },
-  sectionLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 12,
-    marginTop: 16,
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
   },
-  typeButtons: {
+  typeSelector: {
     flexDirection: 'row',
     gap: 12,
-    marginBottom: 16,
   },
   typeButton: {
     flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    padding: 12,
     borderRadius: 8,
     borderWidth: 2,
     borderColor: colors.textSecondary + '40',
@@ -488,86 +424,48 @@ const styles = StyleSheet.create({
   },
   typeButtonText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: colors.textSecondary,
   },
   activeTypeButtonText: {
     color: colors.primary,
   },
-  symptomInput: {
-    marginBottom: 16,
-  },
-  symptomsList: {
-    marginBottom: 16,
-  },
-  symptomsTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 8,
-  },
   symptomItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     backgroundColor: colors.background,
     borderRadius: 8,
     padding: 12,
-    marginBottom: 8,
-  },
-  symptomInfo: {
-    flex: 1,
-  },
-  symptomText: {
-    fontSize: 16,
-    color: colors.text,
-    fontWeight: '500',
-  },
-  symptomSeverity: {
-    fontSize: 14,
-    color: colors.textSecondary,
+    marginBottom: 12,
   },
   removeButton: {
+    alignSelf: 'flex-end',
     padding: 8,
   },
-  triageActions: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 8,
-  },
-  triageButton: {
-    flex: 1,
+  removeButtonText: {
+    color: colors.error,
+    fontSize: 14,
+    fontWeight: '500',
   },
   triageResult: {
-    borderWidth: 2,
-    borderRadius: 8,
     padding: 16,
-    marginBottom: 16,
+    borderRadius: 8,
+    marginTop: 16,
   },
   triageTitle: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '600',
     color: colors.text,
     marginBottom: 8,
   },
   triageSeverity: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  triageUrgency: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: colors.text,
-    marginBottom: 8,
+    marginBottom: 4,
   },
   triageRecommendation: {
     fontSize: 14,
     color: colors.text,
     lineHeight: 20,
-  },
-  bookButton: {
-    marginTop: 16,
   },
   appointmentHeader: {
     flexDirection: 'row',
@@ -576,33 +474,36 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   appointmentType: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: colors.text,
-    textTransform: 'capitalize',
-  },
-  appointmentStatus: {
-    fontSize: 14,
-    fontWeight: '600',
     textTransform: 'capitalize',
   },
   appointmentDate: {
-    fontSize: 16,
-    color: colors.text,
-    marginBottom: 4,
-  },
-  appointmentTicket: {
-    fontSize: 14,
-    color: colors.primary,
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  appointmentSymptoms: {
     fontSize: 14,
     color: colors.textSecondary,
-    marginBottom: 12,
+    marginBottom: 4,
+  },
+  appointmentCode: {
+    fontSize: 12,
+    color: colors.primary,
+    fontWeight: '500',
+    marginBottom: 8,
+  },
+  appointmentStatus: {
+    fontSize: 12,
+    fontWeight: '500',
   },
   cancelButton: {
-    marginTop: 8,
+    padding: 8,
+  },
+  triageInfo: {
+    backgroundColor: colors.background,
+    padding: 8,
+    borderRadius: 6,
+  },
+  triageInfoText: {
+    fontSize: 12,
+    color: colors.textSecondary,
   },
 });

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -84,7 +85,11 @@ export default function HomeScreen() {
   return (
     <AppNavigator>
       <SafeAreaView style={commonStyles.wrapper}>
-        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          style={styles.container} 
+          contentContainerStyle={commonStyles.scrollViewWithTabBar}
+          showsVerticalScrollIndicator={false}
+        >
           {/* Header */}
           <View style={styles.header}>
             <View>

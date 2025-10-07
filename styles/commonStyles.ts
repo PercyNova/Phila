@@ -1,3 +1,4 @@
+
 import { StyleSheet, ViewStyle, TextStyle } from 'react-native';
 
 export const colors = {
@@ -63,11 +64,26 @@ export const commonStyles = StyleSheet.create({
     backgroundColor: colors.background,
     paddingHorizontal: 16,
   },
+  // New style for containers with floating tab bar
+  containerWithTabBar: {
+    flex: 1,
+    backgroundColor: colors.background,
+    paddingHorizontal: 16,
+    paddingBottom: 100, // Add bottom padding to prevent tab bar obstruction
+  },
   content: {
     flex: 1,
     maxWidth: 800,
     width: '100%',
     alignSelf: 'center',
+  },
+  // New style for content with floating tab bar
+  contentWithTabBar: {
+    flex: 1,
+    maxWidth: 800,
+    width: '100%',
+    alignSelf: 'center',
+    paddingBottom: 100, // Add bottom padding to prevent tab bar obstruction
   },
   title: {
     fontSize: 28,
@@ -136,7 +152,7 @@ export const commonStyles = StyleSheet.create({
   },
   floatingButton: {
     position: 'absolute',
-    bottom: 24,
+    bottom: 120, // Moved up to avoid tab bar overlap
     right: 24,
     backgroundColor: colors.primary,
     width: 56,
@@ -146,5 +162,9 @@ export const commonStyles = StyleSheet.create({
     justifyContent: 'center',
     boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.15)',
     elevation: 6,
+  },
+  // New style for scroll views with tab bar
+  scrollViewWithTabBar: {
+    paddingBottom: 100, // Add bottom padding to prevent tab bar obstruction
   },
 });

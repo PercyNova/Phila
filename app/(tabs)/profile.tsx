@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -18,35 +19,29 @@ import { validateEmail, validatePhoneNumber, validateWeight } from '@/src/utils/
 
 export default function ProfileScreen() {
   const { user, updateUser, logout } = useAuth();
-  const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
-    phone: '',
-    dateOfBirth: '',
+    phoneNumber: '',
     weight: '',
-    height: '',
-    bloodType: '',
     allergies: '',
+    bloodType: '',
     emergencyContact: '',
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (user) {
-      // Decrypt sensitive data for display
       setFormData({
         firstName: user.firstName,
         lastName: user.lastName,
         email: getDecryptedData(user.email),
-        phone: getDecryptedData(user.phone),
-        dateOfBirth: getDecryptedData(user.dateOfBirth),
+        phoneNumber: getDecryptedData(user.phoneNumber),
         weight: user.weight,
-        height: user.height,
-        bloodType: user.bloodType,
         allergies: user.allergies,
+        bloodType: user.bloodType,
         emergencyContact: getDecryptedData(user.emergencyContact),
       });
     }
@@ -61,34 +56,27 @@ export default function ProfileScreen() {
   };
 
   const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
-
     if (!formData.firstName.trim()) {
-      newErrors.firstName = 'First name is required';
+      Alert.alert('Error', 'First name is required');
+      return false;
     }
-
     if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
+      Alert.alert('Error', 'Last name is required');
+      return false;
     }
-
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!validateEmail(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
+    if (!validateEmail(formData.email)) {
+      Alert.alert('Error', 'Please enter a valid email address');
+      return false;
     }
-
-    if (!formData.phone.trim()) {
-      newErrors.phone = 'Phone number is required';
-    } else if (!validatePhoneNumber(formData.phone)) {
-      newErrors.phone = 'Please enter a valid phone number';
+    if (!validatePhoneNumber(formData.phoneNumber)) {
+      Alert.alert('Error', 'Please enter a valid phone number');
+      return false;
     }
-
-    if (formData.weight && !validateWeight(formData.weight)) {
-      newErrors.weight = 'Please enter a valid weight';
+    if (!validateWeight(formData.weight)) {
+      Alert.alert('Error', 'Please enter a valid weight');
+      return false;
     }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return true;
   };
 
   const handleSave = async () => {
@@ -96,31 +84,24 @@ export default function ProfileScreen() {
 
     setIsLoading(true);
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const updatedUser = {
+        ...user!,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: encryptData(formData.email),
+        phoneNumber: encryptData(formData.phoneNumber),
+        weight: formData.weight,
+        allergies: formData.allergies,
+        bloodType: formData.bloodType,
+        emergencyContact: encryptData(formData.emergencyContact),
+      };
 
-      if (user) {
-        const updatedUser = {
-          ...user,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: encryptData(formData.email),
-          phone: encryptData(formData.phone),
-          dateOfBirth: encryptData(formData.dateOfBirth),
-          weight: formData.weight,
-          height: formData.height,
-          bloodType: formData.bloodType,
-          allergies: formData.allergies,
-          emergencyContact: encryptData(formData.emergencyContact),
-        };
-
-        updateUser(updatedUser);
-        setIsEditing(false);
-        Alert.alert('Success', 'Profile updated successfully');
-      }
+      updateUser(updatedUser);
+      setIsEditing(false);
+      Alert.alert('Success', 'Profile updated successfully');
     } catch (error) {
-      console.error('Profile update error:', error);
-      Alert.alert('Error', 'Failed to update profile. Please try again.');
+      console.error('Error updating profile:', error);
+      Alert.alert('Error', 'Failed to update profile');
     } finally {
       setIsLoading(false);
     }
@@ -132,16 +113,13 @@ export default function ProfileScreen() {
         firstName: user.firstName,
         lastName: user.lastName,
         email: getDecryptedData(user.email),
-        phone: getDecryptedData(user.phone),
-        dateOfBirth: getDecryptedData(user.dateOfBirth),
+        phoneNumber: getDecryptedData(user.phoneNumber),
         weight: user.weight,
-        height: user.height,
-        bloodType: user.bloodType,
         allergies: user.allergies,
+        bloodType: user.bloodType,
         emergencyContact: getDecryptedData(user.emergencyContact),
       });
     }
-    setErrors({});
     setIsEditing(false);
   };
 
@@ -160,45 +138,28 @@ export default function ProfileScreen() {
     );
   };
 
-  const renderField = (
-    label: string,
-    value: string,
-    key: keyof typeof formData,
-    options?: {
-      keyboardType?: 'default' | 'email-address' | 'phone-pad' | 'numeric';
-      multiline?: boolean;
-      editable?: boolean;
-    }
-  ) => {
-    const { keyboardType = 'default', multiline = false, editable = true } = options || {};
-
-    if (isEditing && editable) {
-      return (
-        <InputField
-          label={label}
-          value={value}
-          onChangeText={(text) => setFormData({ ...formData, [key]: text })}
-          error={errors[key]}
-          keyboardType={keyboardType}
-          multiline={multiline}
-          placeholder={`Enter ${label.toLowerCase()}`}
-        />
-      );
-    }
-
+  const renderField = (label: string, value: string, key: keyof typeof formData) => {
     return (
-      <View style={styles.fieldContainer}>
-        <Text style={styles.fieldLabel}>{label}</Text>
-        <Text style={styles.fieldValue}>{value || 'Not provided'}</Text>
-      </View>
+      <InputField
+        label={label}
+        value={value}
+        onChangeText={(text) => setFormData({ ...formData, [key]: text })}
+        editable={isEditing}
+        placeholder={`Enter ${label.toLowerCase()}`}
+        keyboardType={key === 'phoneNumber' ? 'phone-pad' : key === 'weight' ? 'numeric' : 'default'}
+        multiline={key === 'allergies'}
+      />
     );
   };
 
   return (
     <AppNavigator>
       <SafeAreaView style={commonStyles.wrapper}>
-        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-          {/* Header */}
+        <ScrollView 
+          style={styles.container}
+          contentContainerStyle={commonStyles.scrollViewWithTabBar}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.header}>
             <Text style={commonStyles.title}>Profile</Text>
             <Text style={commonStyles.textSecondary}>
@@ -206,9 +167,8 @@ export default function ProfileScreen() {
             </Text>
           </View>
 
-          {/* Personal Information */}
           <View style={commonStyles.card}>
-            <View style={styles.sectionHeader}>
+            <View style={styles.cardHeader}>
               <Text style={commonStyles.subtitle}>Personal Information</Text>
               {!isEditing && (
                 <Button
@@ -222,61 +182,23 @@ export default function ProfileScreen() {
 
             {renderField('First Name', formData.firstName, 'firstName')}
             {renderField('Last Name', formData.lastName, 'lastName')}
-            {renderField('Email', formData.email, 'email', { keyboardType: 'email-address' })}
-            {renderField('Phone', formData.phone, 'phone', { keyboardType: 'phone-pad' })}
-            {renderField('Date of Birth', formData.dateOfBirth, 'dateOfBirth', { editable: false })}
+            {renderField('Email', formData.email, 'email')}
+            {renderField('Phone Number', formData.phoneNumber, 'phoneNumber')}
           </View>
 
-          {/* Health Information */}
           <View style={commonStyles.card}>
             <Text style={commonStyles.subtitle}>Health Information</Text>
-            
-            {renderField('Weight (kg)', formData.weight, 'weight', { keyboardType: 'numeric' })}
-            {renderField('Height (cm)', formData.height, 'height', { keyboardType: 'numeric' })}
-            {renderField('Blood Type', formData.bloodType, 'bloodType', { editable: false })}
-            {renderField('Allergies', formData.allergies, 'allergies', { multiline: true })}
+            {renderField('Weight (kg)', formData.weight, 'weight')}
+            {renderField('Blood Type', formData.bloodType, 'bloodType')}
+            {renderField('Allergies', formData.allergies, 'allergies')}
           </View>
 
-          {/* Emergency Contact */}
           <View style={commonStyles.card}>
             <Text style={commonStyles.subtitle}>Emergency Contact</Text>
             {renderField('Emergency Contact', formData.emergencyContact, 'emergencyContact')}
           </View>
 
-          {/* Medical History */}
-          <View style={commonStyles.card}>
-            <Text style={commonStyles.subtitle}>Medical History</Text>
-            {user?.medicalHistory && user.medicalHistory.length > 0 ? (
-              user.medicalHistory.map((condition, index) => (
-                <View key={index} style={styles.historyItem}>
-                  <Text style={styles.historyText}>
-                    • {getDecryptedData(condition)}
-                  </Text>
-                </View>
-              ))
-            ) : (
-              <Text style={commonStyles.textSecondary}>No medical history recorded</Text>
-            )}
-          </View>
-
-          {/* Current Medications */}
-          <View style={commonStyles.card}>
-            <Text style={commonStyles.subtitle}>Current Medications</Text>
-            {user?.medications && user.medications.length > 0 ? (
-              user.medications.map((medication, index) => (
-                <View key={index} style={styles.historyItem}>
-                  <Text style={styles.historyText}>
-                    • {getDecryptedData(medication)}
-                  </Text>
-                </View>
-              ))
-            ) : (
-              <Text style={commonStyles.textSecondary}>No medications recorded</Text>
-            )}
-          </View>
-
-          {/* Action Buttons */}
-          {isEditing ? (
+          {isEditing && (
             <View style={styles.actionButtons}>
               <Button
                 title="Cancel"
@@ -287,22 +209,29 @@ export default function ProfileScreen() {
               <Button
                 title={isLoading ? 'Saving...' : 'Save Changes'}
                 onPress={handleSave}
-                loading={isLoading}
+                disabled={isLoading}
                 style={styles.actionButton}
-              />
-            </View>
-          ) : (
-            <View style={commonStyles.card}>
-              <Button
-                title="Logout"
-                onPress={handleLogout}
-                variant="outline"
-                style={styles.logoutButton}
               />
             </View>
           )}
 
-          <View style={styles.bottomPadding} />
+          {!isEditing && (
+            <View style={commonStyles.card}>
+              <Text style={commonStyles.subtitle}>Account Actions</Text>
+              <Button
+                title="Logout"
+                onPress={handleLogout}
+                variant="outline"
+                style={[styles.logoutButton, { borderColor: colors.error }]}
+              />
+            </View>
+          )}
+
+          {isLoading && (
+            <View style={styles.loadingOverlay}>
+              <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+          )}
         </ScrollView>
       </SafeAreaView>
     </AppNavigator>
@@ -317,7 +246,7 @@ const styles = StyleSheet.create({
   header: {
     paddingVertical: 20,
   },
-  sectionHeader: {
+  cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -327,37 +256,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
-  fieldContainer: {
-    marginBottom: 16,
-  },
-  fieldLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 4,
-  },
-  fieldValue: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: colors.background,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.textSecondary + '20',
-  },
-  historyItem: {
-    marginBottom: 8,
-  },
-  historyText: {
-    fontSize: 14,
-    color: colors.text,
-    lineHeight: 20,
-  },
   actionButtons: {
     flexDirection: 'row',
     gap: 12,
-    marginVertical: 16,
+    marginBottom: 16,
   },
   actionButton: {
     flex: 1,
@@ -365,7 +267,14 @@ const styles = StyleSheet.create({
   logoutButton: {
     marginTop: 8,
   },
-  bottomPadding: {
-    height: 100,
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
