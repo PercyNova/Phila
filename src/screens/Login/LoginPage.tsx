@@ -56,7 +56,6 @@ export const LoginPage: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-<<<<<<< HEAD
 const handleLogin = async () => {
   if (!validateForm()) return;
 
@@ -113,63 +112,6 @@ const handleFaceID = async () => {
     Alert.alert('Error', 'An unexpected error occurred. Please try again.');
   }
 };
-=======
-  const handleLogin = async () => {
-    if (!validateForm()) return;
-
-    try {
-      const response = await login(formData);
-      
-      if (response.success && response.requiresOTP) {
-        setStep('otp');
-      } else if (!response.success) {
-        Alert.alert('Login Failed', response.message);
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
-    }
-  };
-
-  const handleOTPVerification = async (otp: string) => {
-    if (!validateOTP(otp)) {
-      setOtpError('Please enter a valid 4-digit OTP');
-      return;
-    }
-
-    setOtpError('');
-
-    try {
-      const response = await verifyOTP(otp);
-      
-      if (response.success) {
-        console.log('Login successful, navigating to home');
-        router.replace('/(tabs)/(home)/');
-      } else {
-        setOtpError(response.message);
-      }
-    } catch (error) {
-      console.error('OTP verification error:', error);
-      setOtpError('An unexpected error occurred. Please try again.');
-    }
-  };
-
-  const handleFaceID = async () => {
-    try {
-      const response = await simulateFaceID();
-      
-      if (response.success) {
-        console.log('FaceID successful, navigating to home');
-        router.replace('/(tabs)/(home)/');
-      } else {
-        Alert.alert('FaceID Failed', response.message);
-      }
-    } catch (error) {
-      console.error('FaceID error:', error);
-      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
-    }
-  };
->>>>>>> f40eb7428653cf041ce3cf4b0237e0a2ccc56142
 
   const renderCredentialsStep = () => (
     <View style={styles.formContainer}>
@@ -223,11 +165,7 @@ const handleFaceID = async () => {
         </View>
 
         <Button
-<<<<<<< HEAD
           title="Use FaceID"
-=======
-          title="🔒 Use FaceID"
->>>>>>> f40eb7428653cf041ce3cf4b0237e0a2ccc56142
           onPress={handleFaceID}
           variant="outline"
           loading={isLoading}

@@ -15,11 +15,8 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
-<<<<<<< HEAD
     "workbox-config.js", "src/screens/Triage/TriagePage.tsx",
-=======
     "workbox-config.js",
->>>>>>> f40eb7428653cf041ce3cf4b0237e0a2ccc56142
   ],
   "exclude": [
     "node_modules"

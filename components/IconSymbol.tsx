@@ -102,12 +102,13 @@ const MAPPING = {
   "bookmark.fill": "bookmark",
   "bookmark": "bookmark-border",
 
-<<<<<<< HEAD
   // Triage
   "heart.text.square.fill": "medical-services",
+  "flame.fill": "local-fire-department",
+  "drop.fill": "water-drop",
+  "figure.walk": "directions-walk",
+  "powersleep": "bedtime",
 
-=======
->>>>>>> f40eb7428653cf041ce3cf4b0237e0a2ccc56142
   // Technology & Code
   "chevron.left.forwardslash.chevron.right": "code",
   "qrcode.viewfinder": "qr-code",

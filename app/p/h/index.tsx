@@ -43,7 +43,7 @@ const NATURE_COLORS = {
 const GRID_BREAKPOINT = 768; 
 
 export default function HomeScreen() {
-  const { user, switchToRandomUser, updateUser } = useAuth();
+  const { user, updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({ weight: '', allergies: '' });
   const [upcomingAppointments, setUpcomingAppointments] = useState<any[]>([]);
@@ -93,22 +93,7 @@ export default function HomeScreen() {
     }
   };
 
-  const handleSwitchUser = () => {
-    Alert.alert(
-      'Switch User',
-      'This will switch to a different mock user for demo purposes.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Switch',
-          onPress: () => {
-            switchToRandomUser();
-            Alert.alert('Success', 'Switched to a new demo user');
-          },
-        },
-      ]
-    );
-  };
+
 
   const getDecryptedData = (encryptedData: string): string => {
     try {
@@ -244,7 +229,7 @@ export default function HomeScreen() {
                 <View key={appointment.id} style={[styles.appointmentItem, { backgroundColor: NATURE_COLORS.highlight }]}>
                   <View style={styles.appointmentInfo}>
                     <Text style={[styles.appointmentType, { color: NATURE_COLORS.text }]}>
-                      {appointment.type === 'routine' ? '🩺' : '🔍'} {appointment.type.replace('-', ' ')}
+                      {appointment.type === 'routine' ? <IconSymbol name="heart.text.square.fill" size={16} color={NATURE_COLORS.text} /> : <IconSymbol name="magnifyingglass" size={16} color={NATURE_COLORS.text} />} {appointment.type.replace('-', ' ')}
                     </Text>
                     <Text style={[styles.appointmentDate, { color: NATURE_COLORS.textSecondary }]}>
                       {appointment.date} at {appointment.time}
@@ -264,19 +249,19 @@ export default function HomeScreen() {
           <View style={[commonStyles.card, gridCardStyle, isGridActive && styles.gridItem3]}>
             <Text style={[commonStyles.subtitle, { color: NATURE_COLORS.text }]}>Health Recommendations</Text>
             <View style={styles.recommendation}>
-              <Text style={styles.recommendationIcon}>💧</Text>
+              <IconSymbol name="drop.fill" size={20} color={NATURE_COLORS.text} />
               <Text style={[styles.recommendationText, { color: NATURE_COLORS.text }]}>
                 Stay hydrated - aim for 8 glasses of water daily
               </Text>
             </View>
             <View style={styles.recommendation}>
-              <Text style={styles.recommendationIcon}>🚶‍♂️</Text>
+              <IconSymbol name="figure.walk" size={20} color={NATURE_COLORS.text} />
               <Text style={[styles.recommendationText, { color: NATURE_COLORS.text }]}>
                 Take a 30-minute walk today for better cardiovascular health
               </Text>
             </View>
             <View style={styles.recommendation}>
-              <Text style={styles.recommendationIcon}>😴</Text>
+              <IconSymbol name="powersleep" size={20} color={NATURE_COLORS.text} />
               <Text style={[styles.recommendationText, { color: NATURE_COLORS.text }]}>
                 Maintain 7-9 hours of sleep for optimal recovery
               </Text>
@@ -285,28 +270,7 @@ export default function HomeScreen() {
           
         </View>
 
-        {/* Demo Actions */}
-        <View style={commonStyles.card}>
-          <Text style={[commonStyles.subtitle, { color: NATURE_COLORS.text }]}>Demo Actions</Text>
-          <Button
-            title="🔄 Switch to Random User"
-            onPress={handleSwitchUser}
-            variant="outline"
-            style={[styles.demoButton, { borderColor: NATURE_COLORS.light }]}
-            titleStyle={{ color: NATURE_COLORS.primary }}
-          />
-        </View>
       </ScrollView>
-
-      {/* Floating Action Button */}
-      <TouchableOpacity
-        // Use the primary color for the floating button background
-        style={[commonStyles.floatingButton, { backgroundColor: NATURE_COLORS.primary }]}
-        onPress={handleSwitchUser}
-      >
-        {/* Use the card/white color for the icon */}
-        <IconSymbol name="person.2.fill" size={24} color={NATURE_COLORS.card} />
-      </TouchableOpacity>
     </SafeAreaView>
   );
 }
