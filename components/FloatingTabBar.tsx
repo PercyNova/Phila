@@ -70,7 +70,11 @@ export default function FloatingTabBar({
         score = 60;
       }
       // Check for partial matches in the route
+<<<<<<< HEAD
       else if (tab.route.includes('/p/') && pathname.includes(tab.route.split('/p/')[1])) {
+=======
+      else if (tab.route.includes('/(tabs)/') && pathname.includes(tab.route.split('/(tabs)/')[1])) {
+>>>>>>> f40eb7428653cf041ce3cf4b0237e0a2ccc56142
         score = 40;
       }
 
@@ -120,25 +124,43 @@ export default function FloatingTabBar({
       ...Platform.select({
         ios: {
           backgroundColor: theme.dark
+<<<<<<< HEAD
             ? 'rgba(28, 28, 30, 1.0)'
             : 'rgba(255, 255, 255, 1.0)',
           borderWidth: 1,
           borderColor: theme.dark
             ? 'rgba(255, 255, 255, 0.8)'
+=======
+            ? 'rgba(28, 28, 30, 0.85)'
+            : 'rgba(255, 255, 255, 0.85)',
+          borderWidth: 1,
+          borderColor: theme.dark
+            ? 'rgba(255, 255, 255, 0.1)'
+>>>>>>> f40eb7428653cf041ce3cf4b0237e0a2ccc56142
             : 'rgba(0, 0, 0, 0.05)',
         },
         android: {
           backgroundColor: theme.dark
+<<<<<<< HEAD
             ? 'rgba(28, 28, 30, 1.0)'
             : 'rgba(255, 255, 255, 1.0)',
           elevation: 12,
           borderWidth: 1,
           borderColor: theme.dark
             ? 'rgba(255, 255, 255, 0.8)'
+=======
+            ? 'rgba(28, 28, 30, 0.95)'
+            : 'rgba(255, 255, 255, 0.95)',
+          elevation: 12,
+          borderWidth: 1,
+          borderColor: theme.dark
+            ? 'rgba(255, 255, 255, 0.1)'
+>>>>>>> f40eb7428653cf041ce3cf4b0237e0a2ccc56142
             : 'rgba(0, 0, 0, 0.05)',
         },
         web: {
           backgroundColor: theme.dark
+<<<<<<< HEAD
             ? 'rgba(28, 28, 30, 1.0)'
             : 'rgba(255, 255, 255, 1.0)',
           backdropFilter: 'blur(20px)',
@@ -148,6 +170,17 @@ export default function FloatingTabBar({
             : '0 8px 32px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
           border: theme.dark
             ? '1px solid rgba(255, 255, 255, 0.8)'
+=======
+            ? 'rgba(28, 28, 30, 0.9)'
+            : 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          boxShadow: theme.dark
+            ? '0 8px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+            : '0 8px 32px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+          border: theme.dark
+            ? '1px solid rgba(255, 255, 255, 0.1)'
+>>>>>>> f40eb7428653cf041ce3cf4b0237e0a2ccc56142
             : '1px solid rgba(0, 0, 0, 0.05)',
         },
       }),
@@ -156,12 +189,20 @@ export default function FloatingTabBar({
       ...styles.background,
       backgroundColor: theme.dark
         ? (Platform.OS === 'ios' ? 'transparent' : 'rgba(28, 28, 30, 0.1)')
+<<<<<<< HEAD
         : (Platform.OS === 'ios' ? 'transparent' : 'rgba(255, 255, 255, 0.8)'),
+=======
+        : (Platform.OS === 'ios' ? 'transparent' : 'rgba(255, 255, 255, 0.1)'),
+>>>>>>> f40eb7428653cf041ce3cf4b0237e0a2ccc56142
     },
     indicator: {
       ...styles.indicator,
       backgroundColor: theme.dark
+<<<<<<< HEAD
         ? 'rgba(255, 255, 255, 0.82)' // More visible white overlay in dark mode
+=======
+        ? 'rgba(255, 255, 255, 0.12)' // More visible white overlay in dark mode
+>>>>>>> f40eb7428653cf041ce3cf4b0237e0a2ccc56142
         : 'rgba(0, 0, 0, 0.06)', // More visible black overlay in light mode
       width: `${(100 / tabs.length) - 3}%`, // Dynamic width based on number of tabs
     },

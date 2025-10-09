@@ -1,7 +1,11 @@
 import "react-native-reanimated";
 import React, { useEffect } from "react";
 import { useFonts } from "expo-font";
+<<<<<<< HEAD
 import { Stack, useRouter, useSegments } from "expo-router";
+=======
+import { Stack, router } from "expo-router";
+>>>>>>> f40eb7428653cf041ce3cf4b0237e0a2ccc56142
 import * as SplashScreen from "expo-splash-screen";
 import { SystemBars } from "react-native-edge-to-edge";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -16,12 +20,17 @@ import {
 import { StatusBar } from "expo-status-bar";
 import { Button } from "@/components/button";
 import { WidgetProvider } from "@/contexts/WidgetContext";
+<<<<<<< HEAD
 import { AuthProvider, useAuth } from "@/src/context/AuthContext";
+=======
+import { AuthProvider } from "@/src/context/AuthContext";
+>>>>>>> f40eb7428653cf041ce3cf4b0237e0a2ccc56142
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export const unstable_settings = {
+<<<<<<< HEAD
   initialRouteName: "p/h",
 };
 
@@ -80,6 +89,9 @@ const RootLayoutNav = () => {
       />
     </Stack>
   );
+=======
+  initialRouteName: "(tabs)",
+>>>>>>> f40eb7428653cf041ce3cf4b0237e0a2ccc56142
 };
 
 export default function RootLayout() {
@@ -138,6 +150,7 @@ export default function RootLayout() {
   return (
     <>
       <StatusBar style="auto" animated />
+<<<<<<< HEAD
       <ThemeProvider
         value={colorScheme === "dark" ? CustomDarkTheme : CustomDefaultTheme}
       >
@@ -150,6 +163,56 @@ export default function RootLayout() {
           </WidgetProvider>
         </AuthProvider>
       </ThemeProvider>
+=======
+        <ThemeProvider
+          value={colorScheme === "dark" ? CustomDarkTheme : CustomDefaultTheme}
+        >
+          <AuthProvider>
+            <WidgetProvider>
+              <GestureHandlerRootView>
+            <Stack>
+              {/* Main app with tabs */}
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+
+              {/* Modal Demo Screens */}
+              <Stack.Screen
+                name="modal"
+                options={{
+                  presentation: "modal",
+                  title: "Standard Modal",
+                }}
+              />
+              <Stack.Screen
+                name="formsheet"
+                options={{
+                  presentation: "formSheet",
+                  title: "Form Sheet Modal",
+                  sheetGrabberVisible: true,
+                  sheetAllowedDetents: [0.5, 0.8, 1.0],
+                  sheetCornerRadius: 20,
+                }}
+              />
+              <Stack.Screen
+                name="transparent-modal"
+                options={{
+                  presentation: "transparentModal",
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name="triage"
+                options={{
+                  presentation: "modal",
+                  title: "Symptom Triage",
+                }}
+              />
+            </Stack>
+              <SystemBars style={"auto"} />
+              </GestureHandlerRootView>
+            </WidgetProvider>
+          </AuthProvider>
+        </ThemeProvider>
+>>>>>>> f40eb7428653cf041ce3cf4b0237e0a2ccc56142
     </>
   );
 }

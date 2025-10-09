@@ -167,4 +167,8 @@ export const commonStyles = StyleSheet.create({
   scrollViewWithTabBar: {
     paddingBottom: 100, // Add bottom padding to prevent tab bar obstruction
   },
+<<<<<<< HEAD
 });
+=======
+});
+>>>>>>> f40eb7428653cf041ce3cf4b0237e0a2ccc56142
