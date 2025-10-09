@@ -2,17 +2,20 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '../utils/randomUser';
 import { authService, LoginCredentials, AuthResponse, OTPVerificationResponse } from '../services/authService';
+import { encryptAES, decryptAES } from '../services/cryptoService';
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  aesKey: string | null;
   login: (credentials: LoginCredentials) => Promise<AuthResponse>;
   verifyOTP: (otp: string) => Promise<OTPVerificationResponse>;
   simulateFaceID: () => Promise<OTPVerificationResponse>;
   logout: () => void;
-  switchToRandomUser: () => User;
   updateUser: (updatedUser: User) => void;
+  encryptData: (data: string | object) => string;
+  decryptData: (ciphertext: string) => string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,20 +27,20 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [aesKey, setAesKey] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check if user is already authenticated on app start
     const currentUser = authService.getCurrentUser();
     if (currentUser) {
       setUser(currentUser);
+      // In a real app, the AES key would be securely stored and retrieved.
     }
   }, []);
 
   const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
     setIsLoading(true);
     try {
-      const response = await authService.login(credentials);
-      return response;
+      return await authService.login(credentials);
     } finally {
       setIsLoading(false);
     }
@@ -47,8 +50,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     try {
       const response = await authService.verifyOTP(otp);
-      if (response.success && response.user) {
+      if (response.success && response.user && response.aesKey) {
         setUser(response.user);
+        setAesKey(response.aesKey);
       }
       return response;
     } finally {
@@ -60,8 +64,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     try {
       const response = await authService.simulateFaceID();
-      if (response.success && response.user) {
+      if (response.success && response.user && response.aesKey) {
         setUser(response.user);
+        setAesKey(response.aesKey);
       }
       return response;
     } finally {
@@ -72,28 +77,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = () => {
     authService.logout();
     setUser(null);
-  };
-
-  const switchToRandomUser = (): User => {
-    const newUser = authService.switchToRandomUser();
-    setUser(newUser);
-    return newUser;
+    setAesKey(null);
   };
 
   const updateUser = (updatedUser: User) => {
     setUser(updatedUser);
   };
 
+  const encryptData = (data: string | object): string => {
+    if (!aesKey) throw new Error("AES key not available. User may not be logged in.");
+    return encryptAES(data, aesKey);
+  };
+
+  const decryptData = (ciphertext: string): string => {
+    if (!aesKey) throw new Error("AES key not available. User may not be logged in.");
+    try {
+      return decryptAES(ciphertext, aesKey);
+    } catch (error) {
+      console.error("Decryption failed:", error);
+      return ciphertext; // Return original text if decryption fails
+    }
+  };
+
   const value: AuthContextType = {
     user,
     isAuthenticated: user !== null,
     isLoading,
+    aesKey,
     login,
     verifyOTP,
     simulateFaceID,
     logout,
-    switchToRandomUser,
     updateUser,
+    encryptData,
+    decryptData,
   };
 
   return (

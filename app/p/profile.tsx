@@ -15,7 +15,6 @@ import { AppNavigator } from '@/src/navigation/AppNavigator';
 import { Button } from '@/src/components/Button';
 import { InputField } from '@/src/components/InputField';
 import { commonStyles } from '@/styles/commonStyles';
-import { decryptData, encryptData } from '@/src/utils/encryption';
 import { validateEmail, validatePhoneNumber, validateWeight } from '@/src/utils/validation';
 import { IconSymbol } from '@/components/IconSymbol';
 
@@ -37,7 +36,7 @@ const NATURE_COLORS = {
 const GRID_BREAKPOINT = 768;
 
 export default function ProfileScreen() {
-  const { user, updateUser, logout } = useAuth();
+  const { user, updateUser, logout, encryptData, decryptData } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '',
@@ -61,27 +60,19 @@ export default function ProfileScreen() {
       setFormData({
         firstName: user.firstName,
         lastName: user.lastName,
-        email: getDecrypted(user.email),
-        phoneNumber: getDecrypted(user.phoneNumber),
+        email: decryptData(user.email),
+        phoneNumber: decryptData(user.phoneNumber),
         weight: user.weight,
         allergies: user.allergies,
         bloodType: user.bloodType,
-        emergencyContact: getDecrypted(user.emergencyContact),
+        emergencyContact: decryptData(user.emergencyContact),
       });
     }
 
     return () => subscription.remove();
-  }, [user]);
+  }, [user, decryptData]);
 
   const isGridActive = screenWidth >= GRID_BREAKPOINT;
-
-  const getDecrypted = (data: string) => {
-    try {
-      return decryptData(data);
-    } catch {
-      return data;
-    }
-  };
 
   const validateForm = (): boolean => {
     if (!formData.firstName.trim()) {
@@ -118,9 +109,9 @@ export default function ProfileScreen() {
         lastName: formData.lastName,
         email: encryptData(formData.email),
         phoneNumber: encryptData(formData.phoneNumber),
-        weight: formData.weight,
-        allergies: formData.allergies,
-        bloodType: formData.bloodType,
+        weight: formData.weight, // Assuming weight is not PII
+        allergies: formData.allergies, // Assuming allergies are not PII
+        bloodType: formData.bloodType, // Assuming bloodType is not PII
         emergencyContact: encryptData(formData.emergencyContact),
       };
       updateUser(updatedUser);
@@ -139,12 +130,12 @@ export default function ProfileScreen() {
       setFormData({
         firstName: user.firstName,
         lastName: user.lastName,
-        email: getDecrypted(user.email),
-        phoneNumber: getDecrypted(user.phoneNumber),
+        email: decryptData(user.email),
+        phoneNumber: decryptData(user.phoneNumber),
         weight: user.weight,
         allergies: user.allergies,
         bloodType: user.bloodType,
-        emergencyContact: getDecrypted(user.emergencyContact),
+        emergencyContact: decryptData(user.emergencyContact),
       });
     }
     setIsEditing(false);

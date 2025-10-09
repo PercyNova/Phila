@@ -1,6 +1,5 @@
-
-import { User, getRandomUser } from '../utils/randomUser';
-import { getMockUser } from './mockUsers';
+import { mockUsersPromise, mockUsersAesKeys, EncryptedUser } from './mockUsers';
+import { User } from '../utils/randomUser';
 
 export interface LoginCredentials {
   idPassport: string;
@@ -11,7 +10,6 @@ export interface LoginCredentials {
 export interface AuthResponse {
   success: boolean;
   message: string;
-  user?: User;
   requiresOTP?: boolean;
 }
 
@@ -19,119 +17,54 @@ export interface OTPVerificationResponse {
   success: boolean;
   message: string;
   user?: User;
+  aesKey?: string;
 }
 
 class AuthService {
   private currentUser: User | null = null;
-  private pendingCredentials: LoginCredentials | null = null;
-  private readonly VALID_OTP = '1234'; // Simulated OTP
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    console.log('Attempting login with credentials:', credentials);
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Basic validation
-    if (!credentials.idPassport || !credentials.surname || !credentials.phoneNumber) {
-      return {
-        success: false,
-        message: 'All fields are required',
-      };
-    }
-    
-    // Store credentials for OTP verification
-    this.pendingCredentials = credentials;
-    
-    return {
-      success: true,
-      message: 'OTP sent to your phone number',
-      requiresOTP: true,
-    };
+    // This is a mock login. In a real app, you would send the encrypted
+    // credentials to the backend for verification.
+    console.log('Login attempt with:', credentials);
+    return { success: true, requiresOTP: true, message: 'OTP sent to your phone.' };
   }
 
   async verifyOTP(otp: string): Promise<OTPVerificationResponse> {
-    console.log('Verifying OTP:', otp);
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    if (!this.pendingCredentials) {
-      return {
-        success: false,
-        message: 'No pending login found. Please try logging in again.',
-      };
+    if (otp !== '1234') {
+      return { success: false, message: 'Invalid OTP' };
     }
-    
-    if (otp !== this.VALID_OTP) {
-      return {
-        success: false,
-        message: 'Invalid OTP. Please try again.',
-      };
-    }
-    
-    // Assign a random mock user upon successful verification
-    const user = getMockUser();
-    this.currentUser = user;
-    this.pendingCredentials = null;
-    
-    console.log('Login successful, assigned user:', user.firstName, user.lastName);
-    
-    return {
-      success: true,
-      message: 'Login successful',
-      user,
-    };
+
+    const users = await mockUsersPromise;
+    const user = users[0]; // Just log in the first user for this mock implementation
+    const aesKey = mockUsersAesKeys[0];
+
+    this.currentUser = user as any; // Type casting for simplicity
+
+    return { success: true, message: 'Login successful', user: user as any, aesKey };
   }
 
   async simulateFaceID(): Promise<OTPVerificationResponse> {
-    console.log('Simulating FaceID authentication');
-    
-    // Simulate FaceID delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Simulate 90% success rate
-    const success = Math.random() > 0.1;
-    
-    if (!success) {
-      return {
-        success: false,
-        message: 'FaceID authentication failed. Please try again.',
-      };
-    }
-    
-    // Assign a random mock user upon successful FaceID
-    const user = getMockUser();
-    this.currentUser = user;
-    
-    console.log('FaceID successful, assigned user:', user.firstName, user.lastName);
-    
-    return {
-      success: true,
-      message: 'FaceID authentication successful',
-      user,
-    };
+    const users = await mockUsersPromise;
+    const user = users[1]; // Just log in the second user for this mock implementation
+    const aesKey = mockUsersAesKeys[1];
+
+    this.currentUser = user as any;
+
+    return { success: true, message: 'Login successful', user: user as any, aesKey };
+  }
+
+  logout(): void {
+    this.currentUser = null;
   }
 
   getCurrentUser(): User | null {
     return this.currentUser;
   }
 
-  logout(): void {
-    console.log('User logged out');
-    this.currentUser = null;
-    this.pendingCredentials = null;
-  }
-
   switchToRandomUser(): User {
-    console.log('Switching to random user for demo');
-    const user = getMockUser();
-    this.currentUser = user;
-    return user;
-  }
-
-  isAuthenticated(): boolean {
-    return this.currentUser !== null;
+    // This function is not implemented in the new flow
+    throw new Error('switchToRandomUser is not supported in this implementation.');
   }
 }
 

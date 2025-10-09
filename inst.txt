@@ -1,0 +1,55 @@
+1️⃣ Move mock user data into the backend
+
+Current: You’re reading encrypted.txt from the frontend.
+
+Change: Store mock users in the backend, e.g., backend/data/mockUsers.json or generate them dynamically in backend/mockUsers.js.
+
+Reason: The backend should control key generation and encryption. Frontend should not have access to raw AES keys at build time.
+
+2️⃣ Backend generates session AES keys
+
+Current: Frontend sends encryptedAesKey to the backend.
+
+Change: Backend should generate a random 256-bit AES key per login/session.
+
+Reason: This mirrors real-world usage; frontend does not pre-generate AES keys.
+
+3️⃣ Encrypt user data on the backend
+
+Current: Backend reads a pre-encrypted file.
+
+Change: Backend should encrypt sensitive fields of the user object on-the-fly using the newly generated AES key.
+
+4️⃣ Wrap AES key with RSA public key
+
+Current: Backend unwraps AES key sent from frontend.
+
+Change: Backend wraps AES key with public key and sends it to frontend.
+
+Reason: Frontend can decrypt user data using the AES key in-memory but never needs the private key.
+
+5️⃣ Login flow improvement
+
+Current: No credential verification, OTP, or session simulation.
+
+Change: Simulate:
+
+User enters username/password
+
+Backend returns “OTP sent” message
+
+Frontend submits OTP (1234)
+
+Backend generates AES key, encrypts user data, wraps AES key, sends both back
+
+6️⃣ Remove dependency on frontend file paths
+
+Avoid reading frontend/encrypted.txt.
+
+Backend should be self-contained:
+
+backend/secrets/private.pem → private key
+
+backend/secrets/public.pem → public key
+
+backend/data/mockUsers.js → raw user data

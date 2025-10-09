@@ -16,7 +16,7 @@
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
     "workbox-config.js", "src/screens/Triage/TriagePage.tsx",
-    "workbox-config.js",
+    "workbox-config.js", "src/utils/encryption.ts",
   ],
   "exclude": [
     "node_modules"

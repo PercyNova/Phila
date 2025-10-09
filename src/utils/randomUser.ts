@@ -1,5 +1,5 @@
 
-import { encryptData } from './encryption';
+
 
 export interface User {
   id: string;
