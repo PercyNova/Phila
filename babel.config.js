@@ -1,7 +1,5 @@
-
 module.exports = function (api) {
   api.cache(true);
-
 
   const EDITABLE_COMPONENTS =
     process.env.EXPO_PUBLIC_ENABLE_EDIT_MODE === "TRUE" &&
@@ -18,7 +16,17 @@ module.exports = function (api) {
       [
         "module-resolver",
         {
-          root: ["./"],
+          root: ["./src"],
+          alias: {
+            "@": "./src",
+            "@components": "./src/components",
+            "@styles": "./src/styles",
+            "@utils": "./src/utils",
+            "@hooks": "./src/hooks",
+            "@context": "./src/context",
+            "@services": "./src/services",
+            "@lib": "./src/lib",
+          },
           extensions: [
             ".ios.ts",
             ".android.ts",
@@ -30,19 +38,11 @@ module.exports = function (api) {
             ".js",
             ".json",
           ],
-          alias: {
-            "@": "./",
-            "@components": "./components",
-            "@style": "./style",
-            "@hooks": "./hooks",
-            "@types": "./types",
-            "@contexts": "./contexts",
-          },
         },
       ],
       ...EDITABLE_COMPONENTS,
       "@babel/plugin-proposal-export-namespace-from",
-      "react-native-worklets/plugin", // react-native-worklets/plugin must be listed last!
+      "react-native-worklets/plugin", // keep this last!
     ],
   };
 };

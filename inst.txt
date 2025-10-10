@@ -1,55 +1,243 @@
-1️⃣ Move mock user data into the backend
+3
 
-Current: You’re reading encrypted.txt from the frontend.
 
-Change: Store mock users in the backend, e.g., backend/data/mockUsers.json or generate them dynamically in backend/mockUsers.js.
+Log 1 of 3
 
-Reason: The backend should control key generation and encryption. Frontend should not have access to raw AES keys at build time.
-
-2️⃣ Backend generates session AES keys
-
-Current: Frontend sends encryptedAesKey to the backend.
-
-Change: Backend should generate a random 256-bit AES key per login/session.
-
-Reason: This mirrors real-world usage; frontend does not pre-generate AES keys.
-
-3️⃣ Encrypt user data on the backend
-
-Current: Backend reads a pre-encrypted file.
-
-Change: Backend should encrypt sensitive fields of the user object on-the-fly using the newly generated AES key.
-
-4️⃣ Wrap AES key with RSA public key
-
-Current: Backend unwraps AES key sent from frontend.
-
-Change: Backend wraps AES key with public key and sends it to frontend.
-
-Reason: Frontend can decrypt user data using the AES key in-memory but never needs the private key.
-
-5️⃣ Login flow improvement
-
-Current: No credential verification, OTP, or session simulation.
-
-Change: Simulate:
-
-User enters username/password
-
-Backend returns “OTP sent” message
-
-Frontend submits OTP (1234)
-
-Backend generates AES key, encrypts user data, wraps AES key, sends both back
-
-6️⃣ Remove dependency on frontend file paths
-
-Avoid reading frontend/encrypted.txt.
-
-Backend should be self-contained:
-
-backend/secrets/private.pem → private key
-
-backend/secrets/public.pem → public key
-
-backend/data/mockUsers.js → raw user data
+Uncaught Error
+emergencyContact.match is not a function
+Call Stack
+parseEmergencyContact
+app/p/emergency.tsx
+EmergencyScreen
+app/p/emergency.tsx
+callComponent.reactStackBottomFrame
+node_modules/react-dom/cjs/react-dom-client.development.js
+renderWithHooks
+node_modules/react-dom/cjs/react-dom-client.development.js
+updateFunctionComponent
+node_modules/react-dom/cjs/react-dom-client.development.js
+beginWork
+node_modules/react-dom/cjs/react-dom-client.development.js
+runWithFiberInDEV
+node_modules/react-dom/cjs/react-dom-client.development.js
+performUnitOfWork
+node_modules/react-dom/cjs/react-dom-client.development.js
+workLoopSync
+node_modules/react-dom/cjs/react-dom-client.development.js
+renderRootSync
+node_modules/react-dom/cjs/react-dom-client.development.js
+performWorkOnRoot
+node_modules/react-dom/cjs/react-dom-client.development.js
+performSyncWorkOnRoot
+node_modules/react-dom/cjs/react-dom-client.development.js
+flushSyncWorkAcrossRoots_impl
+node_modules/react-dom/cjs/react-dom-client.development.js
+processRootScheduleInMicrotask
+node_modules/react-dom/cjs/react-dom-client.development.js
+scheduleMicrotask$argument_0
+node_modules/react-dom/cjs/react-dom-client.development.js
+Collapse all 15 frames
+Component Stack
+EmergencyScreen
+app/p/emergency.tsx
+Suspense
+<anonymous>:-1:0
+Route
+node_modules/expo-router/build/Route.js
+BaseRoute
+node_modules/expo-router/build/useScreens.js
+StaticContainer
+node_modules/@react-navigation/core/lib/module/StaticContainer.js
+EnsureSingleNavigator
+node_modules/@react-navigation/core/lib/module/EnsureSingleNavigator.js
+SceneView
+node_modules/@react-navigation/core/lib/module/SceneView.js
+div
+<anonymous>:-1:0
+React.forwardRef$argument_0
+node_modules/react-native-web/dist/exports/View/index.js
+AnimatedHeaderHeightProvider
+node_modules/@react-navigation/native-stack/lib/module/views/NativeStackView.js
+div
+<anonymous>:-1:0
+React.forwardRef$argument_0
+node_modules/react-native-web/dist/exports/View/index.js
+div
+<anonymous>:-1:0
+React.forwardRef$argument_0
+node_modules/react-native-web/dist/exports/View/index.js
+React.forwardRef$argument_0
+node_modules/react-native-web/dist/vendor/react-native/Animated/createAnimatedComponent.js
+Background
+node_modules/@react-navigation/elements/lib/module/Background.js
+Screen
+node_modules/@react-navigation/elements/lib/module/Screen.js
+FrameSizeProvider
+node_modules/@react-navigation/elements/lib/module/useFrameSize.js
+div
+<anonymous>:-1:0
+React.forwardRef$argument_0
+node_modules/react-native-web/dist/exports/View/index.js
+SafeAreaProviderCompat
+node_modules/@react-navigation/elements/lib/module/SafeAreaProviderCompat.js
+NativeStackView
+node_modules/@react-navigation/native-stack/lib/module/views/NativeStackView.js
+div
+<anonymous>:-1:0
+ModalStackView
+node_modules/expo-router/build/modal/web/ModalStack.js
+PreventRemoveProvider
+node_modules/@react-navigation/core/lib/module/PreventRemoveProvider.js
+NavigationStateListenerProvider
+node_modules/@react-navigation/core/lib/module/useNavigationState.js
+NavigationContent
+node_modules/@react-navigation/core/lib/module/useComponent.js
+React.useRef$argument_0
+node_modules/@react-navigation/core/lib/module/useComponent.js
+ModalStackNavigator
+node_modules/expo-router/build/modal/web/ModalStack.js
+<anonymous>
+node_modules/expo-router/build/layouts/withLayoutContext.js
+TabLayout(./p/_layout.tsx)
+<anonymous>:-1:0
+Suspense
+<anonymous>:-1:0
+Route
+node_modules/expo-router/build/Route.js
+BaseRoute
+node_modules/expo-router/build/useScreens.js
+StaticContainer
+node_modules/@react-navigation/core/lib/module/StaticContainer.js
+EnsureSingleNavigator
+node_modules/@react-navigation/core/lib/module/EnsureSingleNavigator.js
+SceneView
+node_modules/@react-navigation/core/lib/module/SceneView.js
+div
+<anonymous>:-1:0
+React.forwardRef$argument_0
+node_modules/react-native-web/dist/exports/View/index.js
+AnimatedHeaderHeightProvider
+node_modules/@react-navigation/native-stack/lib/module/views/NativeStackView.js
+div
+<anonymous>:-1:0
+React.forwardRef$argument_0
+node_modules/react-native-web/dist/exports/View/index.js
+div
+<anonymous>:-1:0
+React.forwardRef$argument_0
+node_modules/react-native-web/dist/exports/View/index.js
+React.forwardRef$argument_0
+node_modules/react-native-web/dist/vendor/react-native/Animated/createAnimatedComponent.js
+Background
+node_modules/@react-navigation/elements/lib/module/Background.js
+Screen
+node_modules/@react-navigation/elements/lib/module/Screen.js
+FrameSizeProviderInner
+node_modules/@react-navigation/elements/lib/module/useFrameSize.js
+FrameSizeProvider
+node_modules/@react-navigation/elements/lib/module/useFrameSize.js
+div
+<anonymous>:-1:0
+React.forwardRef$argument_0
+node_modules/react-native-web/dist/exports/View/index.js
+SafeAreaProviderCompat
+node_modules/@react-navigation/elements/lib/module/SafeAreaProviderCompat.js
+NativeStackView
+node_modules/@react-navigation/native-stack/lib/module/views/NativeStackView.js
+div
+<anonymous>:-1:0
+ModalStackView
+node_modules/expo-router/build/modal/web/ModalStack.js
+PreventRemoveProvider
+node_modules/@react-navigation/core/lib/module/PreventRemoveProvider.js
+NavigationStateListenerProvider
+node_modules/@react-navigation/core/lib/module/useNavigationState.js
+NavigationContent
+node_modules/@react-navigation/core/lib/module/useComponent.js
+React.useRef$argument_0
+node_modules/@react-navigation/core/lib/module/useComponent.js
+ModalStackNavigator
+node_modules/expo-router/build/modal/web/ModalStack.js
+<anonymous>
+node_modules/expo-router/build/layouts/withLayoutContext.js
+RootLayoutNav
+app/_layout.tsx
+div
+<anonymous>:-1:0
+React.forwardRef$argument_0
+node_modules/react-native-web/dist/exports/View/index.js
+GestureHandlerRootView
+node_modules/react-native-gesture-handler/lib/module/components/GestureHandlerRootView.web.js
+WidgetProvider
+src/context/WidgetContext.tsx
+AuthProvider
+src/context/AuthContext.tsx
+ThemeProvider
+node_modules/@react-navigation/core/lib/module/theming/ThemeProvider.js
+RootLayout
+app/_layout.tsx
+Suspense
+<anonymous>:-1:0
+Route
+node_modules/expo-router/build/Route.js
+BaseRoute
+node_modules/expo-router/build/useScreens.js
+StaticContainer
+node_modules/@react-navigation/core/lib/module/StaticContainer.js
+EnsureSingleNavigator
+node_modules/@react-navigation/core/lib/module/EnsureSingleNavigator.js
+SceneView
+node_modules/@react-navigation/core/lib/module/SceneView.js
+PreventRemoveProvider
+node_modules/@react-navigation/core/lib/module/PreventRemoveProvider.js
+NavigationStateListenerProvider
+node_modules/@react-navigation/core/lib/module/useNavigationState.js
+NavigationContent
+node_modules/@react-navigation/core/lib/module/useComponent.js
+React.useRef$argument_0
+node_modules/@react-navigation/core/lib/module/useComponent.js
+Content
+node_modules/expo-router/build/ExpoRoot.js
+div
+<anonymous>:-1:0
+ModalsRenderer
+node_modules/expo-router/build/modal/ModalsRenderer.web.js
+ModalContextProvider
+node_modules/expo-router/build/modal/ModalContext.js
+div
+<anonymous>:-1:0
+React.forwardRef$argument_0
+node_modules/react-native-web/dist/exports/View/index.js
+NativeSafeAreaProvider
+node_modules/react-native-safe-area-context/lib/module/NativeSafeAreaProvider.web.js
+SafeAreaProvider
+node_modules/react-native-safe-area-context/lib/module/SafeAreaContext.js
+LinkPreviewContextProvider
+node_modules/expo-router/build/link/preview/LinkPreviewContext.js
+<anonymous>
+node_modules/expo-router/build/ExpoRoot.js
+ThemeProvider
+node_modules/@react-navigation/core/lib/module/theming/ThemeProvider.js
+EnsureSingleNavigator
+node_modules/@react-navigation/core/lib/module/EnsureSingleNavigator.js
+BaseNavigationContainer
+node_modules/@react-navigation/core/lib/module/BaseNavigationContainer.js
+NavigationContainerInner
+node_modules/expo-router/build/fork/NavigationContainer.js
+ContextNavigator
+node_modules/expo-router/build/ExpoRoot.js
+ExpoRoot
+node_modules/expo-router/build/ExpoRoot.js
+_HelmetProvider#constructor
+node_modules/expo-router/vendor/react-helmet-async/lib/index.js
+App
+<anonymous>:-1:0
+LogBoxStateSubscription#constructor
+node_modules/@expo/metro-runtime/src/error-overlay/Data/LogBoxData.tsx
+ErrorOverlay
+<anonymous>:-1:0
+withDevTools(ErrorOverlay)
+<anonymous>:-1:0
+AppContainer
+shim:react-native-web/dist/exports/AppRegistry/AppContainer.js
+Collapse all 101 frames

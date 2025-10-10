@@ -10,15 +10,15 @@ import {
 } from 'react-native';
 // FIX APPLIED HERE:
 import { SafeAreaView } from 'react-native-safe-area-context'; 
-import { useAuth } from '@/src/context/AuthContext';
-import { AppNavigator } from '@/src/navigation/AppNavigator';
-import { Button } from '@/src/components/Button';
-import { InputField } from '@/src/components/InputField';
+import { useAuth } from '@context/AuthContext';
+import { AppNavigator } from '../../src/navigation/AppNavigator';
+import { Button } from '@components/button';
+import { InputField } from '@components/InputField';
 // Assuming you import colors and commonStyles like this:
-import { colors as existingColors, commonStyles } from '@/styles/commonStyles'; 
-import { decryptData } from '@/src/utils/encryption';
-import { appointmentService } from '@/src/services/appointmentService';
-import { IconSymbol } from '@/components/IconSymbol';
+import { colors as existingColors, commonStyles } from '@styles/commonStyles'; 
+import { decryptData } from '@utils/encryption';
+import { appointmentService } from '@services/appointmentService';
+import { IconSymbol } from '@components/IconSymbol';
 
 // --- NEW LIGHT GREEN PASTELL COLOR PALETTE ---
 const NATURE_COLORS = {

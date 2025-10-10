@@ -10,13 +10,13 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth } from '@/src/context/AuthContext';
-import { AppNavigator } from '@/src/navigation/AppNavigator';
-import { Button } from '@/src/components/Button';
-import { InputField } from '@/src/components/InputField';
-import { commonStyles } from '@/styles/commonStyles';
-import { validateEmail, validatePhoneNumber, validateWeight } from '@/src/utils/validation';
-import { IconSymbol } from '@/components/IconSymbol';
+import { useAuth } from '@context/AuthContext';
+import { AppNavigator } from '../../src/navigation/AppNavigator';
+import { Button } from '@components/button';
+import { InputField } from '@components/InputField';
+import { commonStyles } from '@styles/commonStyles';
+import { validateEmail, validatePhoneNumber, validateWeight } from '@utils/validation';
+import { IconSymbol } from '@components/IconSymbol';
 
 const NATURE_COLORS = {
   primary: '#8BAF9E',
@@ -43,11 +43,13 @@ export default function ProfileScreen() {
     lastName: '',
     email: '',
     phoneNumber: '',
+    address: '', // Added address
     weight: '',
     allergies: '',
     bloodType: '',
     emergencyContactName: '',
     emergencyContactPhone: '',
+    emergencyContactEmail: '', // Added emergency contact email
   });
   const [isLoading, setIsLoading] = useState(false);
   const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
@@ -56,21 +58,23 @@ export default function ProfileScreen() {
     const onChange = ({ window: { width } }: { window: { width: number } }) => setScreenWidth(width);
     const subscription = Dimensions.addEventListener('change', onChange);
 
-    if (user) {
-      setFormData({
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: decryptData(user.email),
-        phoneNumber: decryptData(user.phoneNumber),
-        weight: user.weight,
-        allergies: user.allergies,
-        bloodType: user.bloodType,
-        emergencyContact: decryptData(user.emergencyContact),
-      });
-    }
-
-    return () => subscription.remove();
-  }, [user, decryptData]);
+          if (user) {
+            setFormData({
+              firstName: user.firstName || '',
+              lastName: user.lastName || '',
+              email: user.email || '',
+              phoneNumber: user.phoneNumber || '',
+              address: user.address || '',
+              weight: user.weight || '',
+              allergies: user.allergies || '',
+              bloodType: user.bloodType || '',
+              emergencyContactName: user.emergencyContactName || '',
+              emergencyContactPhone: user.emergencyContactPhone || '',
+              emergencyContactEmail: user.emergencyContactEmail || '',
+            });
+          }
+    
+          return () => subscription.remove();  }, [user, decryptData]);
 
   const isGridActive = screenWidth >= GRID_BREAKPOINT;
 
@@ -109,10 +113,13 @@ export default function ProfileScreen() {
         lastName: formData.lastName,
         email: encryptData(formData.email),
         phoneNumber: encryptData(formData.phoneNumber),
+        address: formData.address, // Assuming address is not PII
         weight: formData.weight, // Assuming weight is not PII
         allergies: formData.allergies, // Assuming allergies are not PII
         bloodType: formData.bloodType, // Assuming bloodType is not PII
-        emergencyContact: encryptData(formData.emergencyContact),
+        emergencyContactName: formData.emergencyContactName,
+        emergencyContactPhone: encryptData(formData.emergencyContactPhone),
+        emergencyContactEmail: encryptData(formData.emergencyContactEmail),
       };
       updateUser(updatedUser);
       setIsEditing(false);
@@ -128,14 +135,17 @@ export default function ProfileScreen() {
   const handleCancel = () => {
     if (user) {
       setFormData({
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: decryptData(user.email),
-        phoneNumber: decryptData(user.phoneNumber),
-        weight: user.weight,
-        allergies: user.allergies,
-        bloodType: user.bloodType,
-        emergencyContact: decryptData(user.emergencyContact),
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        phoneNumber: user.phoneNumber || '',
+        address: user.address || '',
+        weight: user.weight || '',
+        allergies: user.allergies || '',
+        bloodType: user.bloodType || '',
+        emergencyContactName: user.emergencyContactName || '',
+        emergencyContactPhone: user.emergencyContactPhone || '',
+        emergencyContactEmail: user.emergencyContactEmail || '',
       });
     }
     setIsEditing(false);
@@ -235,7 +245,10 @@ export default function ProfileScreen() {
                 </View>
                 <View style={styles.fieldsRow}>
                   {renderField('Email Address', 'email', 2, 'envelope')}
-                  {renderField('Phone Number', 'phoneNumber', 2, 'phone')}
+                  {renderField('Phone Number', 'phoneNumber', 2, 'phone.fill')}
+                </View>
+                <View style={styles.fieldsRow}>
+                  {renderField('Address', 'address', 1, 'location')}
                 </View>
               </View>
             </View>
@@ -252,12 +265,19 @@ export default function ProfileScreen() {
               </View>
               <View style={styles.cardContent}>
                 <View style={styles.fieldsRow}>
-                  {renderField('Weight (kg)', 'weight', 3, 'scale')}
-                  {renderField('Blood Type', 'bloodType', 3, 'drop')}
-                  {renderField('Emergency Contact', 'emergencyContact', 3, 'phone.badge')}
+                  {renderField('Weight (kg)', 'weight', 2, 'scale')}
+                  {renderField('Blood Type', 'bloodType', 2, 'drop')}
                 </View>
                 <View style={styles.fieldsRow}>
                   {renderField('Allergies', 'allergies', 1, 'exclamationmark.triangle')}
+                </View>
+                <Text style={styles.sectionTitle}>Emergency Contact</Text>
+                <View style={styles.fieldsRow}>
+                  {renderField('Contact Name', 'emergencyContactName', 1, 'person.text.rectangle')}
+                </View>
+                <View style={styles.fieldsRow}>
+                  {renderField('Contact Phone', 'emergencyContactPhone', 2, 'phone.fill')}
+                  {renderField('Contact Email', 'emergencyContactEmail', 2, 'envelope.fill')}
                 </View>
               </View>
             </View>
@@ -599,5 +619,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: NATURE_COLORS.text,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: NATURE_COLORS.text,
+    marginTop: 16,
+    marginBottom: 8,
   },
 });

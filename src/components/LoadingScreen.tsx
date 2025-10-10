@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, commonStyles } from '../../styles/commonStyles';
+import { colors, commonStyles } from '@styles/commonStyles';
 
 interface LoadingScreenProps {
   message?: string;

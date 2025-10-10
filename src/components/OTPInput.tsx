@@ -6,7 +6,7 @@ import {
   StyleSheet,
   Text,
 } from 'react-native';
-import { colors } from '../../styles/commonStyles';
+import { colors } from '@styles/commonStyles';
 
 interface OTPInputProps {
   length?: number;

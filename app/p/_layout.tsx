@@ -2,7 +2,7 @@ import React from 'react';
 import { Platform } from 'react-native';
 import { NativeTabs, Icon, Label } from 'expo-router/unstable-native-tabs';
 import { Stack } from 'expo-router';
-import FloatingTabBar, { TabBarItem } from '@/components/FloatingTabBar';
+import FloatingTabBar, { TabBarItem } from '@components/FloatingTabBar';
 
 export default function TabLayout() {
   // Define the tabs configuration
@@ -13,8 +13,8 @@ export default function TabLayout() {
       icon: 'house.fill',
       label: 'Home',
     },
-    {
-      name: 'triage',
+     {
+      name: 'triage',  // This should work since triage.tsx is in /p/
       route: '/p/triage',
       icon: 'heart.text.square.fill',
       label: 'Triage',

@@ -10,12 +10,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useAuth } from '../src/context/AuthContext';
-import { Button } from '../components/button';
-import { InputField } from '../src/components/InputField';
-import { OTPInput } from '../src/components/OTPInput';
-import { colors, commonStyles } from '../styles/commonStyles';
-import { validateID, validateSurname, validatePhoneNumber, validateOTP } from '../src/utils/validation';
+import { useAuth } from '@context/AuthContext';
+import { Button } from '@components/button';
+import { InputField } from '@components/InputField';
+import { OTPInput } from '@components/OTPInput';
+import { colors, commonStyles } from '@styles/commonStyles';
+import { validateID, validateSurname, validatePhoneNumber, validateOTP } from '@utils/validation';
 
 export default function Login() {
   const router = useRouter();

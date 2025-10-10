@@ -11,15 +11,15 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth } from '@/src/context/AuthContext';
-import { AppNavigator } from '@/src/navigation/AppNavigator';
-import { Button } from '@/src/components/Button';
-import { InputField } from '@/src/components/InputField';
-import { colors, commonStyles } from '@/styles/commonStyles';
-import { appointmentService, Appointment } from '@/src/services/appointmentService';
-import { triageService, SymptomInput, TriageResult } from '@/src/services/triageService';
+import { useAuth } from '@context/AuthContext';
+import { AppNavigator } from '../../src/navigation/AppNavigator';
+import { Button } from '@components/button';
+import { InputField } from '@components/InputField';
+import { colors, commonStyles } from '@styles/commonStyles';
+import { appointmentService, Appointment } from '@services/appointmentService';
+import { triageService, SymptomInput, TriageResult } from '@services/triageService';
 import { useRouter } from 'expo-router';
-import { IconSymbol } from '@/components/IconSymbol';
+import { IconSymbol } from '@components/IconSymbol';
 
 const NATURE_COLORS = {
   primary: '#8BAF9E',

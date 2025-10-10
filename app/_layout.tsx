@@ -15,10 +15,10 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
-import { Button } from "@/components/button";
-import { WidgetProvider } from "@/contexts/WidgetContext";
+import { Button } from "@components/button";
+import { WidgetProvider } from "@context/WidgetContext";
 
-import { AuthProvider, useAuth } from "@/src/context/AuthContext";
+import { AuthProvider, useAuth } from "@context/AuthContext";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();

@@ -10,10 +10,10 @@ import {
 } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { IconSymbol } from '@/components/IconSymbol';
+import { IconSymbol } from '@components/IconSymbol';
 import { BlurView } from 'expo-blur';
 import { useTheme } from '@react-navigation/native';
-import { colors } from '@/styles/commonStyles';
+import { colors } from '@styles/commonStyles';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,

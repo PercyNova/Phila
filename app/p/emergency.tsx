@@ -7,15 +7,14 @@ import {
   Alert,
   Linking,
   TouchableOpacity,
-  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth } from '@/src/context/AuthContext';
-import { AppNavigator } from '@/src/navigation/AppNavigator';
-import { Button } from '@/src/components/Button';
-import { colors, commonStyles } from '@/styles/commonStyles';
-import { decryptData } from '@/src/utils/encryption';
-import { IconSymbol } from '@/components/IconSymbol';
+import { useAuth } from '@context/AuthContext';
+import { AppNavigator } from '../../src/navigation/AppNavigator';
+import { Button } from '@components/button';
+import { colors, commonStyles } from '@styles/commonStyles';
+import { decryptData } from '@utils/encryption';
+import { IconSymbol } from '@components/IconSymbol';
 
 const NATURE_COLORS = {
   primary: '#FF3B30',
@@ -35,25 +34,7 @@ const NATURE_COLORS = {
 export default function EmergencyScreen() {
   const { user } = useAuth();
   const [emergencyReport, setEmergencyReport] = useState<string | null>(null);
-  const [pulseAnim] = useState(new Animated.Value(1));
 
-  React.useEffect(() => {
-    // Pulse animation for emergency button
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.05,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  }, []);
 
   const handleEmergencyCall = () => {
     Alert.alert(
@@ -93,51 +74,27 @@ export default function EmergencyScreen() {
   const generateEmergencyReport = (): string => {
     if (!user) return 'No user data available';
 
-    const emergencyContact = getDecryptedData(user.emergencyContact);
-    const contactMatch = emergencyContact.match(/(.+?)\s*-\s*(.+)/);
-    const contactName = contactMatch ? contactMatch[1] : emergencyContact;
-    const contactPhone = contactMatch ? contactMatch[2] : '';
+    const contactName = user.emergencyContactName || 'N/A';
+    const contactPhone = user.emergencyContactPhone || 'N/A';
 
     const report = `
 EMERGENCY MEDICAL REPORT
 ========================
 Patient: ${user.firstName} ${user.lastName}
 Blood Type: ${user.bloodType}
-Weight: ${user.weight} kg
+Weight: ${user.weight}
 Allergies: ${user.allergies}
 Emergency Contact: ${contactName}
 Contact Phone: ${contactPhone}
 Last Visit: ${user.lastVisit}
 
-Generated: ${new Date().toLocaleString()}
+Generated: ${new Date().toLocaleString()}now 
     `.trim();
 
     return report;
   };
 
-  const getDecryptedData = (encryptedData: string): string => {
-    try {
-      return decryptData(encryptedData);
-    } catch {
-      return encryptedData;
-    }
-  };
 
-  const parseEmergencyContact = () => {
-    if (!user) return { name: 'N/A', phone: 'N/A' };
-    
-    const emergencyContact = getDecryptedData(user.emergencyContact);
-    const match = emergencyContact.match(/(?:Emergency:\s*)?(.+?)\s*-\s*(.+)/);
-    
-    if (match) {
-      return {
-        name: match[1].trim(),
-        phone: match[2].trim(),
-      };
-    }
-    
-    return { name: emergencyContact || 'N/A', phone: 'N/A' };
-  };
 
   const callEmergencyNumber = (number: string, service: string) => {
     Alert.alert(
@@ -155,7 +112,10 @@ Generated: ${new Date().toLocaleString()}
     );
   };
 
-  const emergencyContact = parseEmergencyContact();
+  const emergencyContact = {
+    name: user?.emergencyContactName || 'N/A',
+    phone: user?.emergencyContactPhone || 'N/A',
+  };
 
   return (
     <AppNavigator>
@@ -177,7 +137,7 @@ Generated: ${new Date().toLocaleString()}
           </View>
 
           {/* Main Emergency Call Card */}
-          <Animated.View style={[styles.emergencyCard, { transform: [{ scale: pulseAnim }] }]}>
+          <View style={styles.emergencyCard}>
             <View style={styles.emergencyIconContainer}>
               <View style={styles.emergencyIconOuter}>
                 <View style={styles.emergencyIconInner}>
@@ -200,7 +160,7 @@ Generated: ${new Date().toLocaleString()}
             <Text style={styles.emergencyNote}>
               Your location and medical info will be shared
             </Text>
-          </Animated.View>
+          </View>
 
           {/* Quick Access Numbers */}
           <View style={styles.card}>
@@ -269,7 +229,7 @@ Generated: ${new Date().toLocaleString()}
                   <IconSymbol name="scalemass.fill" size={18} color={NATURE_COLORS.warning} />
                   <Text style={styles.medicalItemLabel}>Weight</Text>
                 </View>
-                <Text style={styles.medicalItemValue}>{user?.weight || 'N/A'} kg</Text>
+                <Text style={styles.medicalItemValue}>{user?.weight || 'N/A'}</Text>
               </View>
 
               <View style={[styles.medicalItem, styles.medicalItemFull]}>

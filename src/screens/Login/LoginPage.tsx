@@ -12,10 +12,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
-import { Button } from '../../components/Button';
+import { Button } from '../../components/button';
 import { InputField } from '../../components/InputField';
 import { OTPInput } from '../../components/OTPInput';
-import { colors, commonStyles } from '../../../styles/commonStyles';
+import { colors, commonStyles } from '../../styles/commonStyles';
 import { validateID, validateSurname, validatePhoneNumber, validateOTP } from '../../utils/validation';
 
 export const LoginPage: React.FC = () => {

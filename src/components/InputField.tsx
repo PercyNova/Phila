@@ -7,7 +7,7 @@ import {
   StyleSheet,
   TextInputProps,
 } from 'react-native';
-import { colors, commonStyles } from '../../styles/commonStyles';
+import { colors, commonStyles } from '@styles/commonStyles';
 
 interface InputFieldProps extends TextInputProps {
   label: string;
